@@ -1105,6 +1105,26 @@ body.dark-mode p {
     color: #cbd5e1;
 }
 
+/* Dark mode results panel - NO MORE LIGHT BOX GLARE! */
+body.dark-mode .results-panel {
+    background: linear-gradient(135deg, #1e3a8a 0%, rgba(59, 130, 246, 0.2) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+
+body.dark-mode .result-label {
+    color: #cbd5e1;
+}
+
+body.dark-mode .result-value {
+    color: #f3f4f6;
+}
+
+body.dark-mode .result-value.large {
+    color: #60a5fa;
+    text-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+}
+
 /* ===== MODALS ===== */
 .modal {
     display: none;
@@ -3071,6 +3091,48 @@ body.dark-mode .semester-status {
     .semester-badge {
         font-size: 1.1rem;
     }
+}
+
+/* ===== QUICK ADD CORE COURSES BUTTON (KILLER FEATURE) ===== */
+.btn-quick-add {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-quick-add:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.btn-quick-add:active {
+    transform: translateY(0);
+}
+
+.btn-quick-add i {
+    animation: iconBounce 1.5s ease-in-out infinite;
+}
+
+/* Dark mode */
+body.dark-mode .btn-quick-add {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+body.dark-mode .btn-quick-add:hover {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.5);
 }
 
 /* ===== SEMESTER HISTORY PANEL ===== */

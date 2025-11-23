@@ -531,7 +531,7 @@ function setupEventListeners() {
     document.getElementById('addSelectedCoresBtn').addEventListener('click', addSelectedCoreCourses);
     document.getElementById('downloadShareCardBtn').addEventListener('click', downloadShareCard);
     document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareText);
-    document.getElementById('calculateGPABtn').addEventListener('click', calculateSemesterGPA);
+    // Auto-calculate on input changes - no manual calculate button needed
     document.getElementById('saveSemesterBtn').addEventListener('click', saveSemester);
     document.getElementById('saveAndNextBtn').addEventListener('click', saveAndProgressToNext);
     document.getElementById('resetBtn').addEventListener('click', resetCourses);
@@ -568,9 +568,15 @@ function setupEventListeners() {
         }
     });
     
-    // Semester transition listeners
-    document.getElementById('academicLevel').addEventListener('change', handleSemesterTransition);
-    document.getElementById('semesterNumber').addEventListener('change', handleSemesterTransition);
+    // Semester transition listeners - sync banner immediately
+    document.getElementById('academicLevel').addEventListener('change', function() {
+        updateSemesterHeaderOnLoad();
+        handleSemesterTransition();
+    });
+    document.getElementById('semesterNumber').addEventListener('change', function() {
+        updateSemesterHeaderOnLoad();
+        handleSemesterTransition();
+    });
 
     // Modal close buttons
     document.querySelectorAll('.close').forEach(btn => {
@@ -750,15 +756,17 @@ function addCourse() {
         }
     });
     
-    // Add event listeners for auto-calculation
+    // Add event listeners for auto-calculation (no manual button needed)
     row.querySelector('.course-grade').addEventListener('change', function() {
         updateGradePoints(courseId);
         calculateSemesterGPA();
+        updateSaveAndNextButton();
     });
     
     row.querySelector('.course-credits').addEventListener('input', function() {
         updateGradePoints(courseId);
         calculateSemesterGPA();
+        updateSaveAndNextButton();
     });
     
     // Add subtle notification
@@ -993,24 +1001,36 @@ function saveAndProgressToNext() {
     const currentLevel = document.getElementById('academicLevel').value;
     const currentSemester = document.getElementById('semesterNumber').value;
     
-    // Trigger save
+    // Step 1: Save current data
     saveSemester();
     
-    // Determine next semester
+    // Step 2: Determine next semester
     const nextSemester = getNextSemester(currentLevel, currentSemester);
     
-    // Wait for save to complete, then transition
+    // Step 3-6: Wait for save to complete, then transition
     setTimeout(() => {
+        // Step 3: Update dropdowns to new semester
         document.getElementById('academicLevel').value = nextSemester.level;
         document.getElementById('semesterNumber').value = nextSemester.semester;
         
+        // Step 4: Update banner text to match
+        updateSemesterHeaderOnLoad();
+        
+        // Step 5: Clear the table inputs
         clearSemesterForm();
-        updateSemesterHeader(nextSemester.level, nextSemester.semester);
+        
+        // Step 6: Show visual feedback
+        const semesterText = nextSemester.semester === '1' ? '1st Semester' : '2nd Semester';
+        showNotification(`📚 Now entering: Level ${nextSemester.level}, ${semesterText}`, 'info');
+        
         displaySemesterHistory();
         suggestCoreCourses(nextSemester.level, nextSemester.semester);
         
         // Update button state
         updateSaveAndNextButton();
+        
+        // Update last state to prevent auto-save trigger
+        lastSemesterState = { level: nextSemester.level, semester: nextSemester.semester };
     }, 500);
 }
 
@@ -1129,6 +1149,23 @@ function calculateSemesterGPA() {
     void resultsPanel.offsetWidth; // Trigger reflow
     resultsPanel.classList.add('updated');
     
+    // Collect course data for insights
+    const coursesData = [];
+    rows.forEach(row => {
+        const code = row.querySelector('.course-code').value;
+        const name = row.querySelector('.course-name').value;
+        const credits = parseFloat(row.querySelector('.course-credits').value) || 0;
+        const grade = row.querySelector('.course-grade').value;
+        const gradeValue = gradeTable[grade] || 0;
+        
+        if (code && grade) {
+            coursesData.push({ code, name, credits, grade, gradeValue });
+        }
+    });
+    
+    // Generate insights
+    generateSemesterInsights(coursesData, gpa);
+    
     return { totalCredits, creditsPassed, totalGradePoints, gpa };
 }
 
@@ -1206,7 +1243,20 @@ function saveSemester() {
         localStorage.setItem('ugGPAData', JSON.stringify(data));
         currentProfile = data.profiles[profileIndex];
         
-        showNotification('Semester saved successfully! 🎉', 'success');
+        // Visual feedback: Update status badge
+        const statusLabel = document.getElementById('semesterStatus');
+        if (statusLabel) {
+            statusLabel.innerHTML = '<i class="fas fa-check-circle"></i> Saved';
+            statusLabel.className = 'semester-status saved';
+            
+            // Reset to "Editing" after 3 seconds
+            setTimeout(() => {
+                statusLabel.innerHTML = '<i class="fas fa-edit"></i> Editing';
+                statusLabel.className = 'semester-status editing';
+            }, 3000);
+        }
+        
+        showNotification('✓ Semester saved successfully! 🎉', 'success');
         updateCGPADisplay();
     }
 }
@@ -1223,7 +1273,7 @@ function displaySemesterHistory() {
     historyPanel.style.display = 'block';
     historyList.innerHTML = '';
     
-    // Sort semesters
+    // Sort semesters: NEWEST FIRST (recent activity) for Calculator page
     const sortedSemesters = [...currentProfile.semesters].sort((a, b) => {
         if (a.level !== b.level) return parseInt(b.level) - parseInt(a.level);
         return parseInt(b.semester) - parseInt(a.semester);
@@ -1987,13 +2037,7 @@ function exportTranscriptCSV() {
 }
 
 // ===== UPDATE EXISTING FUNCTIONS =====
-// Override calculateSemesterGPA to include insights
-const originalCalculateSemesterGPA = calculateSemesterGPA;
-calculateSemesterGPA = function() {
-    const result = originalCalculateSemesterGPA();
-    generateSemesterInsights();
-    return result;
-};
+// Don't override calculateSemesterGPA - insights are handled separately
 
 // Override updateCGPADisplay to include progress bars
 const originalUpdateCGPADisplay = updateCGPADisplay;
@@ -2004,7 +2048,7 @@ updateCGPADisplay = function() {
 
 // ===== SEMESTER INSIGHTS =====
 function generateSemesterInsights(coursesData, gpa) {
-    if (coursesData.length === 0) {
+    if (!coursesData || coursesData.length === 0) {
         document.getElementById('insightsPanel').style.display = 'none';
         return;
     }
