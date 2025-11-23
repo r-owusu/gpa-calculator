@@ -26,6 +26,206 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// ===== COMMON UG CORE COURSES DATABASE =====
+const ugCoreCourses = {
+    "Level 100": [
+        { code: "UGRC110", name: "Academic Writing I", credits: 3 },
+        { code: "UGRC120", name: "Numeracy Skills", credits: 3 },
+        { code: "UGRC150", name: "Critical Thinking and Practical Reasoning", credits: 3 },
+        { code: "UGRC210", name: "Academic Writing II", credits: 3 }
+    ],
+    "Level 200": [
+        { code: "UGRC210", name: "Academic Writing II", credits: 3 },
+        { code: "UGRC220", name: "Introduction to African Studies", credits: 3 },
+        { code: "UGRC250", name: "Science and Technology in Our Lives", credits: 3 }
+    ]
+};
+
+function showQuickAddCoreModal() {
+    const modal = document.getElementById('coreCoursesModal');
+    const grid = document.getElementById('coreCoursesGrid');
+    const level = document.getElementById('academicLevel').value;
+    
+    if (!level) {
+        showNotification('Please select an academic level first!', 'error');
+        return;
+    }
+    
+    grid.innerHTML = '';
+    
+    const courses = ugCoreCourses[level] || [];
+    
+    if (courses.length === 0) {
+        grid.innerHTML = '<p class="info-text">No core courses available for this level.</p>';
+    } else {
+        courses.forEach((course, index) => {
+            const item = document.createElement('div');
+            item.className = 'core-course-item';
+            item.innerHTML = `
+                <input type="checkbox" id="core-${index}" data-code="${course.code}" data-name="${course.name}" data-credits="${course.credits}">
+                <div class="core-course-details">
+                    <div class="core-course-code">${course.code}</div>
+                    <div class="core-course-name">${course.name}</div>
+                    <div class="core-course-credits">${course.credits} credits</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+                this.classList.toggle('selected', this.querySelector('input[type="checkbox"]').checked);
+            });
+            
+            grid.appendChild(item);
+        });
+    }
+    
+    modal.style.display = 'block';
+}
+
+function addSelectedCoreCourses() {
+    const checkboxes = document.querySelectorAll('#coreCoursesGrid input[type="checkbox"]:checked');
+    
+    if (checkboxes.length === 0) {
+        showNotification('Please select at least one course!', 'error');
+        return;
+    }
+    
+    const tableBody = document.getElementById('courseTableBody');
+    
+    checkboxes.forEach(checkbox => {
+        const code = checkbox.dataset.code;
+        const name = checkbox.dataset.name;
+        const credits = checkbox.dataset.credits;
+        const courseId = Date.now() + Math.random();
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" class="course-code" placeholder="e.g. UGRC120" value="${code}" data-id="${courseId}" list="courseCodeHistory-${courseId}" autocomplete="off"><datalist id="courseCodeHistory-${courseId}"></datalist></td>
+            <td><input type="text" class="course-name" placeholder="e.g. Academic Writing I" value="${name}" data-id="${courseId}" list="courseNameHistory-${courseId}" autocomplete="off"><datalist id="courseNameHistory-${courseId}"></datalist></td>
+            <td><input type="number" class="course-credits" min="1" max="6" value="${credits}" data-id="${courseId}"><span class="input-hint"></span></td>
+            <td>
+                <select class="course-grade" data-id="${courseId}">
+                    <option value="">Select Grade</option>
+                    <option value="A">A (4.0)</option>
+                    <option value="B+">B+ (3.5)</option>
+                    <option value="B">B (3.0)</option>
+                    <option value="C+">C+ (2.5)</option>
+                    <option value="C">C (2.0)</option>
+                    <option value="D+">D+ (1.5)</option>
+                    <option value="D">D (1.0)</option>
+                    <option value="E">E (0.5)</option>
+                    <option value="F">F (0.0)</option>
+                </select>
+            </td>
+            <td>
+                <select class="course-type" data-id="${courseId}">
+                    <option value="core">Core</option>
+                    <option value="elective">Elective</option>
+                    <option value="retake">Retake</option>
+                </select>
+            </td>
+            <td class="grade-points" data-id="${courseId}">0.00</td>
+            <td>
+                <button class="btn-danger" onclick="removeCourse(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+        
+        // Add event listeners
+        row.querySelector('.course-grade').addEventListener('change', function() {
+            updateGradePoints(courseId);
+            calculateSemesterGPA();
+        });
+        
+        row.querySelector('.course-credits').addEventListener('input', function() {
+            updateGradePoints(courseId);
+            calculateSemesterGPA();
+        });
+        
+        // Save to history
+        saveCourseToHistory(code, name);
+    });
+    
+    closeModal('coreCoursesModal');
+    showNotification(`✅ Added ${checkboxes.length} core course(s)!`, 'success');
+}
+
+// ===== COURSE AUTOCOMPLETE FUNCTIONS =====
+function saveCourseToHistory(code, name) {
+    if (!code) return;
+    
+    const history = JSON.parse(localStorage.getItem('ugCourseHistory') || '[]');
+    
+    // Check if course already exists
+    const existingIndex = history.findIndex(c => c.code.toUpperCase() === code.toUpperCase());
+    
+    if (existingIndex !== -1) {
+        // Update name if provided
+        if (name) {
+            history[existingIndex].name = name;
+        }
+        history[existingIndex].count++;
+        history[existingIndex].lastUsed = Date.now();
+    } else {
+        history.push({
+            code: code.toUpperCase(),
+            name: name || '',
+            count: 1,
+            lastUsed: Date.now()
+        });
+    }
+    
+    // Keep only last 100 courses, sorted by usage
+    history.sort((a, b) => b.count - a.count);
+    const trimmed = history.slice(0, 100);
+    
+    localStorage.setItem('ugCourseHistory', JSON.stringify(trimmed));
+}
+
+function getCourseFromHistory(code) {
+    if (!code) return null;
+    
+    const history = JSON.parse(localStorage.getItem('ugCourseHistory') || '[]');
+    return history.find(c => c.code.toUpperCase() === code.toUpperCase());
+}
+
+function populateCourseAutocomplete(courseId) {
+    const history = JSON.parse(localStorage.getItem('ugCourseHistory') || '[]');
+    
+    const codeDatalist = document.getElementById(`courseCodeHistory-${courseId}`);
+    const nameDatalist = document.getElementById(`courseNameHistory-${courseId}`);
+    
+    if (!codeDatalist || !nameDatalist) return;
+    
+    // Sort by most used
+    history.sort((a, b) => b.count - a.count);
+    
+    // Populate code suggestions
+    history.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.code;
+        if (course.name) {
+            option.textContent = `${course.code} - ${course.name}`;
+        }
+        codeDatalist.appendChild(option);
+    });
+    
+    // Populate name suggestions
+    history.forEach(course => {
+        if (course.name) {
+            const option = document.createElement('option');
+            option.value = course.name;
+            nameDatalist.appendChild(option);
+        }
+    });
+}
+
 // Grade conversion table
 const gradeTable = {
     'A': 4.0,
@@ -169,6 +369,8 @@ function setupEventListeners() {
 
     // Buttons
     document.getElementById('addCourseBtn').addEventListener('click', addCourse);
+    document.getElementById('quickAddCoreBtn').addEventListener('click', showQuickAddCoreModal);
+    document.getElementById('addSelectedCoresBtn').addEventListener('click', addSelectedCoreCourses);
     document.getElementById('calculateGPABtn').addEventListener('click', calculateSemesterGPA);
     document.getElementById('saveSemesterBtn').addEventListener('click', saveSemester);
     document.getElementById('resetBtn').addEventListener('click', resetCourses);
@@ -311,8 +513,8 @@ function addCourse() {
     const courseId = Date.now();
     
     row.innerHTML = `
-        <td><input type="text" class="course-code" placeholder="e.g. UGRC120" data-id="${courseId}"></td>
-        <td><input type="text" class="course-name" placeholder="e.g. Academic Writing I" data-id="${courseId}"></td>
+        <td><input type="text" class="course-code" placeholder="e.g. UGRC120" data-id="${courseId}" list="courseCodeHistory-${courseId}" autocomplete="off"><datalist id="courseCodeHistory-${courseId}"></datalist></td>
+        <td><input type="text" class="course-name" placeholder="e.g. Academic Writing I" data-id="${courseId}" list="courseNameHistory-${courseId}" autocomplete="off"><datalist id="courseNameHistory-${courseId}"></datalist></td>
         <td><input type="number" class="course-credits" min="1" max="6" value="3" data-id="${courseId}"><span class="input-hint"></span></td>
         <td>
             <select class="course-grade" data-id="${courseId}">
@@ -358,6 +560,28 @@ function addCourse() {
         } else {
             this.style.borderColor = '';
             hint.textContent = '';
+        }
+    });
+    
+    // Add autocomplete functionality
+    const codeInput = row.querySelector('.course-code');
+    const nameInput = row.querySelector('.course-name');
+    
+    // Populate autocomplete from history
+    populateCourseAutocomplete(courseId);
+    
+    // Save to history when user fills in course
+    codeInput.addEventListener('blur', function() {
+        if (this.value.trim()) {
+            saveCourseToHistory(this.value.trim(), nameInput.value.trim());
+        }
+    });
+    
+    // Auto-fill course name if code is recognized
+    codeInput.addEventListener('input', function() {
+        const matchedCourse = getCourseFromHistory(this.value.trim());
+        if (matchedCourse && !nameInput.value) {
+            nameInput.value = matchedCourse.name;
         }
     });
     
@@ -1703,8 +1927,8 @@ function updateDashboard() {
     const { cgpa, totalPassed, totalTaken } = calculateCGPA();
     const classification = getClassification(cgpa);
 
-    // Update CGPA
-    document.getElementById('dash-cgpa').textContent = cgpa.toFixed(2);
+    // Update CGPA with animated gauge
+    updateGPAGauge(cgpa, classification);
     document.getElementById('dash-class').textContent = classification;
 
     // Calculate boundary distance
@@ -1741,6 +1965,42 @@ function updateDashboard() {
     // Update progress bars in dashboard
     const progressContainer = document.getElementById('dash-progress-container');
     progressContainer.innerHTML = generateProgressHTML(cgpa, totalPassed, totalTaken, classification);
+}
+
+function updateGPAGauge(cgpa, classification) {
+    const gaugeFill = document.getElementById('gauge-fill');
+    const gaugeText = document.getElementById('gauge-cgpa-text');
+    const gaugeLabel = document.getElementById('gauge-cgpa-label');
+    
+    if (!gaugeFill || !gaugeText || !gaugeLabel) return;
+    
+    // Calculate percentage (0-100% maps to 0-4.0 GPA)
+    const percentage = Math.min((cgpa / 4.0) * 100, 100);
+    
+    // SVG path arc length is approximately 251.2 for our semi-circle
+    const arcLength = 251.2;
+    const offset = arcLength - (arcLength * percentage / 100);
+    
+    // Animate the gauge fill
+    gaugeFill.style.strokeDashoffset = offset;
+    
+    // Update text values
+    gaugeText.textContent = cgpa.toFixed(2);
+    
+    // Update label with classification
+    const classShort = classification.replace('Class', '').replace('Division', '').trim();
+    gaugeLabel.textContent = classShort;
+    
+    // Color the text based on performance
+    if (cgpa >= 3.6) {
+        gaugeText.style.fill = '#16a34a'; // Green for First Class
+    } else if (cgpa >= 3.0) {
+        gaugeText.style.fill = '#3b82f6'; // Blue for Second Upper
+    } else if (cgpa >= 2.0) {
+        gaugeText.style.fill = '#f59e0b'; // Amber for Second Lower/Third
+    } else {
+        gaugeText.style.fill = '#ef4444'; // Red for struggling
+    }
 }
 
 function generateProgressHTML(cgpa, passed, total, classification) {
@@ -1958,9 +2218,7 @@ function toggleCollapse(elementId) {
 // ===== ENHANCED DASHBOARD WITH SMART INSIGHTS =====
 function updateSmartInsights() {
     if (!currentProfile || !currentProfile.semesters || currentProfile.semesters.length === 0) {
-        document.getElementById('bestCourseText').textContent = 'No data available';
-        document.getElementById('riskCourseText').textContent = 'No data available';
-        document.getElementById('retakeRecText').textContent = 'Add courses to get started';
+        // Keep the engaging empty state messages from HTML - don't overwrite
         return;
     }
 

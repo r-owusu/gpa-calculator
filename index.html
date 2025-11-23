@@ -60,7 +60,22 @@
                     <div class="dashboard-metric">
                         <label>Current CGPA</label>
                         <div class="metric-value-container">
-                            <h3 id="dash-cgpa" class="metric-value">-</h3>
+                            <!-- Visual Gauge -->
+                            <div class="gpa-gauge-container">
+                                <svg class="gpa-gauge" viewBox="0 0 200 120" width="200" height="120">
+                                    <path id="gauge-bg" class="gauge-background" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e0e0e0" stroke-width="20" stroke-linecap="round"/>
+                                    <path id="gauge-fill" class="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGradient)" stroke-width="20" stroke-linecap="round" stroke-dasharray="251.2 251.2" stroke-dashoffset="251.2"/>
+                                    <defs>
+                                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#dc3545;stop-opacity:1" />
+                                            <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#28a745;stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                    <text x="100" y="85" text-anchor="middle" class="gauge-value" id="gauge-cgpa-text">-</text>
+                                    <text x="100" y="105" text-anchor="middle" class="gauge-label" id="gauge-cgpa-label">No Data</text>
+                                </svg>
+                            </div>
                             <span id="dash-cgpa-badge" class="boundary-pill"></span>
                         </div>
                         <p id="dash-class" class="metric-label">No Data Yet</p>
@@ -96,17 +111,17 @@
                         <div class="smart-card best-course">
                             <div class="card-icon">🏆</div>
                             <h4>Best Performance</h4>
-                            <p id="bestCourseText">-</p>
+                            <p id="bestCourseText" class="empty-state-text">Add your first semester to see your top courses!</p>
                         </div>
                         <div class="smart-card risk-course">
                             <div class="card-icon">⚠️</div>
                             <h4>Biggest Risk</h4>
-                            <p id="riskCourseText">-</p>
+                            <p id="riskCourseText" class="empty-state-text">No risks detected yet - keep it up!</p>
                         </div>
                         <div class="smart-card retake-rec">
                             <div class="card-icon">🎯</div>
                             <h4>Recommended Action</h4>
-                            <p id="retakeRecText">-</p>
+                            <p id="retakeRecText" class="empty-state-text">Start adding courses to unlock smart recommendations!</p>
                         </div>
                     </div>
                 </div>
@@ -185,9 +200,14 @@
                     </table>
                 </div>
 
-                <button class="btn-primary" id="addCourseBtn">
-                    <i class="fas fa-plus"></i> Add Another Course
-                </button>
+                <div class="course-actions">
+                    <button class="btn-primary" id="addCourseBtn">
+                        <i class="fas fa-plus"></i> Add Another Course
+                    </button>
+                    <button class="btn-secondary" id="quickAddCoreBtn" title="Quickly add common UG core courses">
+                        <i class="fas fa-bolt"></i> Quick Add Core Courses
+                    </button>
+                </div>
 
                 <div class="results-panel">
                     <div class="result-item">
@@ -760,6 +780,29 @@
             <div class="modal-footer">
                 <button class="btn-secondary" id="cancelProfileBtn">Cancel</button>
                 <button class="btn-primary" id="saveProfileBtn">Create Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Add Core Courses Modal -->
+    <div id="coreCour sesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bolt"></i> Quick Add Core Courses</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="info-text">Select common UG core courses to add them quickly:</p>
+                
+                <div class="core-courses-grid" id="coreCoursesGrid">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('coreCoursesModal')">Cancel</button>
+                <button class="btn-primary" id="addSelectedCoresBtn">
+                    <i class="fas fa-check"></i> Add Selected Courses
+                </button>
             </div>
         </div>
     </div>
