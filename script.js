@@ -487,7 +487,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
     loadProfiles();
-    addDefaultCourse();
+    
+    // Check if current semester selection has saved data
+    checkAndLoadSemesterData();
+    
     updateSemesterHeaderOnLoad();
 });
 
@@ -568,14 +571,14 @@ function setupEventListeners() {
         }
     });
     
-    // Semester transition listeners - sync banner immediately
+    // Semester transition listeners - CHECK AND LOAD existing data
     document.getElementById('academicLevel').addEventListener('change', function() {
         updateSemesterHeaderOnLoad();
-        handleSemesterTransition();
+        checkAndLoadSemesterData();
     });
     document.getElementById('semesterNumber').addEventListener('change', function() {
         updateSemesterHeaderOnLoad();
-        handleSemesterTransition();
+        checkAndLoadSemesterData();
     });
 
     // Modal close buttons
@@ -940,6 +943,90 @@ function clearSemesterForm() {
     document.getElementById('totalGradePoints').textContent = '0.00';
     document.getElementById('semesterGPA').textContent = '0.00';
     document.getElementById('insightsPanel').style.display = 'none';
+}
+
+// ===== CHECK AND LOAD SEMESTER DATA =====
+function checkAndLoadSemesterData() {
+    if (!currentProfile || !currentProfile.semesters) {
+        // No profile or no saved semesters - clear form
+        handleSemesterTransition();
+        return;
+    }
+    
+    const selectedLevel = document.getElementById('academicLevel').value;
+    const selectedSemester = document.getElementById('semesterNumber').value;
+    
+    // SEARCH: Look for existing data for this Level + Semester combo
+    const existingSemester = currentProfile.semesters.find(
+        s => s.level === selectedLevel && s.semester === selectedSemester
+    );
+    
+    if (existingSemester) {
+        // BRANCH: Data EXISTS - Switch to EDIT MODE
+        loadSemesterDataForEditing(existingSemester);
+    } else {
+        // BRANCH: No Data - Switch to CREATE MODE
+        handleSemesterTransition();
+    }
+}
+
+function loadSemesterDataForEditing(semesterData) {
+    // Clear existing rows
+    document.getElementById('courseTableBody').innerHTML = '';
+    
+    // Populate form with saved courses
+    semesterData.courses.forEach(course => {
+        addCourseRow(course.code, course.name, course.credits, course.grade);
+    });
+    
+    // Add one empty row for adding new courses
+    addDefaultCourse();
+    
+    // Recalculate GPA to display results
+    calculateSemesterGPA();
+    
+    // Update status to show EDIT mode
+    const statusLabel = document.getElementById('semesterStatus');
+    if (statusLabel) {
+        statusLabel.innerHTML = '<i class="fas fa-pencil-alt"></i> Editing Saved Data';
+        statusLabel.className = 'semester-status editing';
+    }
+    
+    showNotification(`📝 Loaded saved data for Level ${semesterData.level} Sem ${semesterData.semester} (GPA: ${semesterData.gpa.toFixed(2)})`, 'info');
+}
+
+function addCourseRow(code = '', name = '', credits = '', grade = '') {
+    const tbody = document.getElementById('courseTableBody');
+    const row = tbody.insertRow();
+    
+    row.innerHTML = `
+        <td><input type="text" class="course-code" value="${code}" placeholder="e.g., COMP120" list="courseCodeList"></td>
+        <td><input type="text" class="course-name" value="${name}" placeholder="e.g., Introduction to Computing"></td>
+        <td><input type="number" class="course-credits" value="${credits}" min="0" max="6" step="1"></td>
+        <td>
+            <select class="course-grade" onchange="calculateSemesterGPA()">
+                <option value="">-</option>
+                <option value="A" ${grade === 'A' ? 'selected' : ''}>A</option>
+                <option value="B+" ${grade === 'B+' ? 'selected' : ''}>B+</option>
+                <option value="B" ${grade === 'B' ? 'selected' : ''}>B</option>
+                <option value="C+" ${grade === 'C+' ? 'selected' : ''}>C+</option>
+                <option value="C" ${grade === 'C' ? 'selected' : ''}>C</option>
+                <option value="D+" ${grade === 'D+' ? 'selected' : ''}>D+</option>
+                <option value="D" ${grade === 'D' ? 'selected' : ''}>D</option>
+                <option value="E" ${grade === 'E' ? 'selected' : ''}>E</option>
+                <option value="F" ${grade === 'F' ? 'selected' : ''}>F</option>
+            </select>
+        </td>
+        <td><button type="button" class="remove-btn" onclick="removeCourse(this)">Remove</button></td>
+    `;
+    
+    // Add event listeners for auto-calculate only
+    // (Autocomplete is handled by datalist in HTML)
+    const creditsInput = row.querySelector('.course-credits');
+    creditsInput.addEventListener('input', calculateSemesterGPA);
+    
+    const gradeSelect = row.querySelector('.course-grade');
+    gradeSelect.addEventListener('change', calculateSemesterGPA);
 }
 
 function updateSemesterHeader(level, semester) {
