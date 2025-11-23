@@ -2107,6 +2107,9 @@ function updateDashboard() {
         const fgpaClass = getClassification(fgpa);
         document.getElementById('dash-fgpa').textContent = fgpa.toFixed(2);
         document.getElementById('dash-fgpa-class').textContent = fgpaClass;
+        
+        // Update FGPA icon with dynamic coloring
+        updateFGPAIcon(fgpa);
 
         const fgpaBoundary = checkBoundaryDistance(fgpa);
         const fgpaBadge = document.getElementById('dash-fgpa-badge');
@@ -2119,11 +2122,36 @@ function updateDashboard() {
     } else {
         document.getElementById('dash-fgpa').textContent = '-';
         document.getElementById('dash-fgpa-class').textContent = 'Insufficient data';
+        
+        // Reset FGPA icon to default
+        const fgpaIcon = document.getElementById('fgpaIcon');
+        if (fgpaIcon) {
+            fgpaIcon.className = 'fas fa-graduation-cap fgpa-icon';
+        }
     }
 
     // Update progress bars in dashboard
     const progressContainer = document.getElementById('dash-progress-container');
     progressContainer.innerHTML = generateProgressHTML(cgpa, totalPassed, totalTaken, classification);
+}
+
+function updateFGPAIcon(fgpa) {
+    const icon = document.getElementById('fgpaIcon');
+    if (!icon) return;
+    
+    // Remove all class modifiers
+    icon.className = 'fas fa-graduation-cap fgpa-icon active';
+    
+    // Add color class based on FGPA tier
+    if (fgpa >= 3.6) {
+        icon.classList.add('first-class');
+    } else if (fgpa >= 3.0) {
+        icon.classList.add('second-upper');
+    } else if (fgpa >= 2.0) {
+        icon.classList.add('second-lower');
+    } else {
+        icon.classList.add('third-pass');
+    }
 }
 
 function updateGPAGauge(cgpa, classification) {
@@ -2150,15 +2178,48 @@ function updateGPAGauge(cgpa, classification) {
     const classShort = classification.replace('Class', '').replace('Division', '').trim();
     gaugeLabel.textContent = classShort;
     
-    // Color the text based on performance
+    // Dynamic gauge ring color AND text color (traffic light feedback)
+    let gaugeColor, textColor;
+    
     if (cgpa >= 3.6) {
-        gaugeText.style.fill = '#16a34a'; // Green for First Class
+        // First Class - Gold/Green
+        gaugeColor = '#fbbf24'; // Gold
+        textColor = '#16a34a'; // Green
     } else if (cgpa >= 3.0) {
-        gaugeText.style.fill = '#3b82f6'; // Blue for Second Upper
+        // Second Upper - Blue
+        gaugeColor = '#3b82f6';
+        textColor = '#3b82f6';
     } else if (cgpa >= 2.0) {
-        gaugeText.style.fill = '#f59e0b'; // Amber for Second Lower/Third
+        // Second Lower/Third - Orange
+        gaugeColor = '#f59e0b';
+        textColor = '#f59e0b';
     } else {
-        gaugeText.style.fill = '#ef4444'; // Red for struggling
+        // Below 2.0 - Red
+        gaugeColor = '#ef4444';
+        textColor = '#ef4444';
+    }
+    
+    // Apply dynamic stroke color to gauge ring
+    gaugeFill.style.stroke = gaugeColor;
+    gaugeText.style.fill = textColor;
+}
+
+function updateFGPAIcon(fgpa) {
+    const icon = document.getElementById('fgpaIcon');
+    if (!icon) return;
+    
+    // Remove all class modifiers
+    icon.className = 'fas fa-graduation-cap fgpa-icon active';
+    
+    // Add color class based on FGPA tier (traffic light feedback)
+    if (fgpa >= 3.6) {
+        icon.classList.add('first-class');
+    } else if (fgpa >= 3.0) {
+        icon.classList.add('second-upper');
+    } else if (fgpa >= 2.0) {
+        icon.classList.add('second-lower');
+    } else {
+        icon.classList.add('third-pass');
     }
 }
 
@@ -2169,7 +2230,7 @@ function generateProgressHTML(cgpa, passed, total, classification) {
     return `
         <div class="progress-item">
             <div class="progress-header">
-                <span>CGPA Progress</span>
+                <span>CGPA Progress (Quality)</span>
                 <span class="progress-value">${cgpa.toFixed(2)} / 4.00</span>
             </div>
             <div class="progress-bar-container">
@@ -2179,13 +2240,13 @@ function generateProgressHTML(cgpa, passed, total, classification) {
         </div>
         <div class="progress-item">
             <div class="progress-header">
-                <span>Credits Progress</span>
+                <span>Credits Completed (Quantity)</span>
                 <span class="progress-value">${passed} / ${total}</span>
             </div>
             <div class="progress-bar-container">
                 <div class="progress-bar credits" style="width: ${creditsPercentage}%"></div>
             </div>
-            <div class="progress-label">${passed} Passed | ${total} Taken</div>
+            <div class="progress-label">${passed} Credits Passed | ${total} Credits Taken</div>
         </div>
     `;
 }

@@ -1576,6 +1576,54 @@ body.dark-mode .theme-toggle {
     font-size: 13px !important;
 }
 
+/* FGPA Icon Container */
+.fgpa-icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.fgpa-icon {
+    font-size: 80px;
+    color: #d1d5db;
+    transition: all 0.5s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.fgpa-icon.active {
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+.fgpa-icon.first-class {
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.fgpa-icon.second-upper {
+    color: #3b82f6;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.fgpa-icon.second-lower {
+    color: #f59e0b;
+    text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.fgpa-icon.third-pass {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 /* ===== COLLAPSIBLE SECTIONS ===== */
 .collapsible {
     margin-bottom: 20px;
