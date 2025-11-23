@@ -532,6 +532,7 @@ function setupEventListeners() {
     document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareText);
     document.getElementById('calculateGPABtn').addEventListener('click', calculateSemesterGPA);
     document.getElementById('saveSemesterBtn').addEventListener('click', saveSemester);
+    document.getElementById('saveAndNextBtn').addEventListener('click', saveAndProgressToNext);
     document.getElementById('resetBtn').addEventListener('click', resetCourses);
     document.getElementById('newProfileBtn').addEventListener('click', openProfileModal);
     document.getElementById('createProfileBtn').addEventListener('click', openProfileModal);
@@ -565,6 +566,10 @@ function setupEventListeners() {
             loadProfile(this.value);
         }
     });
+    
+    // Semester transition listeners
+    document.getElementById('academicLevel').addEventListener('change', handleSemesterTransition);
+    document.getElementById('semesterNumber').addEventListener('change', handleSemesterTransition);
 
     // Modal close buttons
     document.querySelectorAll('.close').forEach(btn => {
@@ -789,6 +794,243 @@ function resetCourses() {
     }
 }
 
+// ===== SEMESTER TRANSITION FLOW =====
+let isTransitioning = false;
+let lastSemesterState = { level: '100', semester: '1' };
+
+function handleSemesterTransition() {
+    if (isTransitioning) return;
+    
+    const currentLevel = document.getElementById('academicLevel').value;
+    const currentSemester = document.getElementById('semesterNumber').value;
+    
+    // Check if form has unsaved data
+    const hasUnsavedData = checkForUnsavedData();
+    
+    if (hasUnsavedData) {
+        isTransitioning = true;
+        
+        // Option A: Auto-save with toast notification (Best UX)
+        autoSaveSemester(lastSemesterState.level, lastSemesterState.semester, () => {
+            // Clear form and update to new semester
+            clearSemesterForm();
+            updateSemesterHeader(currentLevel, currentSemester);
+            displaySemesterHistory();
+            
+            // Smart defaults: Pre-fill core courses if applicable
+            suggestCoreCourses(currentLevel, currentSemester);
+            
+            isTransitioning = false;
+        });
+    } else {
+        // No unsaved data, just clear and transition
+        clearSemesterForm();
+        updateSemesterHeader(currentLevel, currentSemester);
+    }
+    
+    // Update last state
+    lastSemesterState = { level: currentLevel, semester: currentSemester };
+}
+
+function checkForUnsavedData() {
+    const rows = document.getElementById('courseTableBody').querySelectorAll('tr');
+    
+    if (rows.length === 0) return false;
+    
+    // Check if any course has data entered
+    for (let row of rows) {
+        const code = row.querySelector('.course-code').value.trim();
+        const credits = row.querySelector('.course-credits').value;
+        const grade = row.querySelector('.course-grade').value;
+        
+        if (code || grade) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+function autoSaveSemester(level, semester, callback) {
+    if (!currentProfile) {
+        // No profile, just skip save
+        if (callback) callback();
+        return;
+    }
+    
+    const rows = document.getElementById('courseTableBody').querySelectorAll('tr');
+    const courses = [];
+    let hasGrades = false;
+    
+    rows.forEach(row => {
+        const code = row.querySelector('.course-code').value.trim();
+        const name = row.querySelector('.course-name').value.trim();
+        const credits = parseFloat(row.querySelector('.course-credits').value) || 0;
+        const grade = row.querySelector('.course-grade').value;
+        
+        if (code && credits > 0 && grade) {
+            courses.push({ code, name, credits, grade });
+            hasGrades = true;
+        }
+    });
+    
+    if (!hasGrades || courses.length === 0) {
+        // No valid data to save
+        if (callback) callback();
+        return;
+    }
+    
+    const results = calculateSemesterGPA();
+    
+    const semesterData = {
+        id: `${level}-${semester}-${Date.now()}`,
+        level,
+        semester,
+        courses,
+        ...results,
+        date: new Date().toISOString()
+    };
+    
+    // Save to current profile
+    const data = JSON.parse(localStorage.getItem('ugGPAData') || '{"profiles":[]}');
+    const profileIndex = data.profiles.findIndex(p => p.id === currentProfile.id);
+    
+    if (profileIndex !== -1) {
+        if (!data.profiles[profileIndex].semesters) {
+            data.profiles[profileIndex].semesters = [];
+        }
+        
+        // Check if semester already exists
+        const existingIndex = data.profiles[profileIndex].semesters.findIndex(
+            s => s.level === level && s.semester === semester
+        );
+        
+        if (existingIndex !== -1) {
+            // Overwrite existing
+            data.profiles[profileIndex].semesters[existingIndex] = semesterData;
+        } else {
+            data.profiles[profileIndex].semesters.push(semesterData);
+        }
+        
+        localStorage.setItem('ugGPAData', JSON.stringify(data));
+        currentProfile = data.profiles[profileIndex];
+        
+        // Show toast notification
+        showNotification(`✓ Level ${level} Sem ${semester} auto-saved (GPA: ${results.gpa.toFixed(2)})`, 'success');
+        updateCGPADisplay();
+    }
+    
+    if (callback) callback();
+}
+
+function clearSemesterForm() {
+    document.getElementById('courseTableBody').innerHTML = '';
+    addDefaultCourse();
+    document.getElementById('totalCredits').textContent = '0';
+    document.getElementById('creditsPassed').textContent = '0';
+    document.getElementById('totalGradePoints').textContent = '0.00';
+    document.getElementById('semesterGPA').textContent = '0.00';
+    document.getElementById('insightsPanel').style.display = 'none';
+}
+
+function updateSemesterHeader(level, semester) {
+    // Update visual indicators
+    const semesterText = semester === '1' ? '1st Semester' : '2nd Semester';
+    showNotification(`📚 Now entering: Level ${level}, ${semesterText}`, 'info');
+}
+
+function suggestCoreCourses(level, semester) {
+    // Smart defaults for UG core courses
+    const ugCoreSuggestions = {
+        '100-1': ['UGRC110', 'UGRC150'],
+        '100-2': ['UGRC120', 'UGRC210', 'UGRC220'],
+        '200-1': ['UGRC250'],
+    };
+    
+    const suggestionKey = `${level}-${semester}`;
+    const suggestedCourses = ugCoreSuggestions[suggestionKey];
+    
+    if (suggestedCourses && suggestedCourses.length > 0) {
+        setTimeout(() => {
+            const message = `💡 Suggestion: Level ${level} Sem ${semester} typically includes ${suggestedCourses.join(', ')}. Quick Add Core Courses?`;
+            
+            if (confirm(message)) {
+                showQuickAddCoreModal();
+            }
+        }, 500);
+    }
+}
+
+function saveAndProgressToNext() {
+    // Save current semester first
+    if (!currentProfile) {
+        showNotification('Please create or select a profile first!', 'error');
+        openProfileModal();
+        return;
+    }
+    
+    const currentLevel = document.getElementById('academicLevel').value;
+    const currentSemester = document.getElementById('semesterNumber').value;
+    
+    // Trigger save
+    saveSemester();
+    
+    // Determine next semester
+    const nextSemester = getNextSemester(currentLevel, currentSemester);
+    
+    // Wait for save to complete, then transition
+    setTimeout(() => {
+        document.getElementById('academicLevel').value = nextSemester.level;
+        document.getElementById('semesterNumber').value = nextSemester.semester;
+        
+        clearSemesterForm();
+        updateSemesterHeader(nextSemester.level, nextSemester.semester);
+        displaySemesterHistory();
+        suggestCoreCourses(nextSemester.level, nextSemester.semester);
+        
+        // Update button state
+        updateSaveAndNextButton();
+    }, 500);
+}
+
+function getNextSemester(currentLevel, currentSemester) {
+    const level = parseInt(currentLevel);
+    const semester = parseInt(currentSemester);
+    
+    if (semester === 1) {
+        // Move to semester 2 of same level
+        return { level: level.toString(), semester: '2' };
+    } else {
+        // Move to semester 1 of next level
+        const nextLevel = level + 100;
+        if (nextLevel <= 400) {
+            return { level: nextLevel.toString(), semester: '1' };
+        } else {
+            // Completed all levels
+            showNotification('🎓 Congratulations! You\'ve completed all academic levels!', 'success');
+            return { level: '400', semester: '2' };
+        }
+    }
+}
+
+function updateSaveAndNextButton() {
+    const hasData = checkForUnsavedData();
+    const button = document.getElementById('saveAndNextBtn');
+    
+    if (hasData) {
+        button.style.display = 'inline-block';
+    } else {
+        button.style.display = 'none';
+    }
+}
+
+// Update the addCourse function to show the Save & Next button when data is entered
+const originalAddCourse = addCourse;
+addCourse = function() {
+    originalAddCourse();
+    setTimeout(updateSaveAndNextButton, 100);
+};
+
 // ===== GPA CALCULATIONS =====
 function calculateSemesterGPA() {
     const rows = document.getElementById('courseTableBody').querySelectorAll('tr');
@@ -914,9 +1156,84 @@ function saveSemester() {
     }
 }
 
+function displaySemesterHistory() {
+    if (!currentProfile || !currentProfile.semesters || currentProfile.semesters.length === 0) {
+        document.getElementById('semesterHistory').style.display = 'none';
+        return;
+    }
+    
+    const historyPanel = document.getElementById('semesterHistory');
+    const historyList = document.getElementById('semesterHistoryList');
+    
+    historyPanel.style.display = 'block';
+    historyList.innerHTML = '';
+    
+    // Sort semesters
+    const sortedSemesters = [...currentProfile.semesters].sort((a, b) => {
+        if (a.level !== b.level) return parseInt(b.level) - parseInt(a.level);
+        return parseInt(b.semester) - parseInt(a.semester);
+    });
+    
+    // Show last 3 semesters as quick reference
+    sortedSemesters.slice(0, 3).forEach(sem => {
+        const historyCard = document.createElement('div');
+        historyCard.className = 'semester-history-card';
+        historyCard.innerHTML = `
+            <div class="semester-history-info">
+                <strong>Level ${sem.level}, Sem ${sem.semester}</strong>
+                <span class="gpa-badge">${sem.gpa.toFixed(2)} GPA</span>
+            </div>
+            <div class="semester-history-meta">
+                ${sem.courses.length} courses · ${sem.totalCredits} credits · ✓ Saved
+            </div>
+            <button class="btn-sm btn-secondary" onclick="loadSemesterForEdit('${sem.level}', '${sem.semester}')">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+        `;
+        historyList.appendChild(historyCard);
+    });
+}
+
+function loadSemesterForEdit(level, semester) {
+    if (!currentProfile || !currentProfile.semesters) return;
+    
+    const semesterData = currentProfile.semesters.find(
+        s => s.level === level && s.semester === semester
+    );
+    
+    if (!semesterData) return;
+    
+    // Set dropdowns
+    document.getElementById('academicLevel').value = level;
+    document.getElementById('semesterNumber').value = semester;
+    
+    // Clear current courses
+    document.getElementById('courseTableBody').innerHTML = '';
+    
+    // Load semester courses
+    semesterData.courses.forEach(course => {
+        addCourse();
+        const lastRow = document.getElementById('courseTableBody').lastElementChild;
+        lastRow.querySelector('.course-code').value = course.code;
+        lastRow.querySelector('.course-name').value = course.name || '';
+        lastRow.querySelector('.course-credits').value = course.credits;
+        lastRow.querySelector('.course-grade').value = course.grade;
+        
+        // Update grade points
+        const courseId = lastRow.querySelector('.course-code').dataset.id;
+        updateGradePoints(courseId);
+    });
+    
+    calculateSemesterGPA();
+    showNotification(`📝 Loaded Level ${level} Sem ${semester} for editing`, 'info');
+}
+
 function updateCGPADisplay() {
     const container = document.getElementById('semesterGPAsList');
     container.innerHTML = '';
+    
+    // Update semester history display
+    displaySemesterHistory();
     
     if (!currentProfile || !currentProfile.semesters || currentProfile.semesters.length === 0) {
         container.innerHTML = '<p class="info-text">No semesters saved yet. Add courses and save your semester to calculate CGPA.</p>';

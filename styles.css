@@ -2989,6 +2989,102 @@ body.dark-mode .progress-feedback.at-risk {
     color: #fee2e2;
 }
 
+/* ===== SEMESTER HISTORY PANEL ===== */
+.semester-history {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 12px;
+    border-left: 4px solid var(--light-blue);
+    animation: slideDown 0.4s ease-out;
+}
+
+.semester-history h4 {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.semester-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.semester-history-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    border-left: 3px solid var(--success-green);
+}
+
+.semester-history-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.semester-history-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.semester-history-info strong {
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.gpa-badge {
+    background: linear-gradient(135deg, var(--success-green), #059669);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.semester-history-meta {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.semester-history-card .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+/* Dark mode semester history */
+body.dark-mode .semester-history {
+    background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%);
+    border-left-color: #60a5fa;
+}
+
+body.dark-mode .semester-history h4 {
+    color: #e5e7eb;
+}
+
+body.dark-mode .semester-history-card {
+    background: #1f2937;
+    border-left-color: #10b981;
+}
+
+body.dark-mode .semester-history-info strong {
+    color: #e5e7eb;
+}
+
+body.dark-mode .semester-history-meta {
+    color: #9ca3af;
+}
+
 /* ===== CLOSE MILESTONE BUTTON ===== */
 .close-milestone {
     background: linear-gradient(135deg, #3b82f6, #1e40af);
