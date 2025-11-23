@@ -1541,6 +1541,89 @@ body.dark-mode p {
     cursor: pointer;
 }
 
+/* ===== ACHIEVEMENT BADGES & OVERLAYS ===== */
+.achievement-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 10px;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+    animation: achievementPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes achievementPop {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.milestone-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    text-align: center;
+    max-width: 400px;
+    animation: milestoneAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes milestoneAppear {
+    to {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.milestone-overlay .milestone-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: iconBounce 1s ease infinite;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.milestone-overlay h2 {
+    color: #1e40af;
+    margin-bottom: 10px;
+}
+
+.milestone-overlay p {
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.milestone-overlay .close-milestone {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.milestone-overlay .close-milestone:hover {
+    background: #2563eb;
+    transform: scale(1.05);
+}
+
 /* ===== COURSE ACTIONS ===== */
 .course-actions {
     display: flex;
@@ -1805,11 +1888,55 @@ body.dark-mode p {
     text-align: center;
     transition: all 0.3s ease;
     border: 2px solid transparent;
+    cursor: pointer;
+    position: relative;
+    opacity: 0;
+    animation: slideUpFadeIn 0.6s ease forwards;
+}
+
+.smart-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.smart-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.smart-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes slideUpFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .smart-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.smart-card::after {
+    content: '\f35d';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.smart-card:hover::after {
+    color: rgba(0, 0, 0, 0.6);
+    transform: scale(1.2);
 }
 
 .smart-card.best-course {
@@ -1848,6 +1975,63 @@ body.dark-mode p {
 /* ===== ADAPTIVE FEEDBACK OVERLAYS ===== */
 .progress-bar-container {
     position: relative;
+}
+
+.progress-bar-container.trending-up::before {
+    content: '\f062 Improving!';
+    font-family: 'Font Awesome 5 Free', sans-serif;
+    font-weight: 900;
+    position: absolute;
+    top: -25px;
+    right: 0;
+    font-size: 11px;
+    color: #10b981;
+    background: #d1fae5;
+    padding: 3px 8px;
+    border-radius: 4px;
+    animation: badgePulse 1.5s ease infinite;
+}
+
+.progress-bar-container.trending-down::before {
+    content: '\f063 Needs Focus';
+    font-family: 'Font Awesome 5 Free', sans-serif;
+    font-weight: 900;
+    position: absolute;
+    top: -25px;
+    right: 0;
+    font-size: 11px;
+    color: #ef4444;
+    background: #fee2e2;
+    padding: 3px 8px;
+    border-radius: 4px;
+    animation: badgePulse 1.5s ease infinite;
+}
+
+.progress-bar-container.at-risk::after {
+    content: '⚠️';
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    animation: warningShake 0.8s ease infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes warningShake {
+    0%, 100% { transform: translateY(-50%) rotate(0deg); }
+    25% { transform: translateY(-50%) rotate(-5deg); }
+    75% { transform: translateY(-50%) rotate(5deg); }
 }
 
 .progress-feedback {
@@ -2691,6 +2875,154 @@ textarea:focus {
 
 .tip-list li i {
     color: var(--success-green);
+}
+
+/* ===== GRADE TABLES IN MODALS ===== */
+.grade-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+}
+
+.grade-table thead {
+    background: linear-gradient(135deg, var(--light-blue), var(--secondary-blue));
+    color: white;
+}
+
+.grade-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--light-blue);
+}
+
+.grade-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--bg-light);
+}
+
+.grade-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.grade-table tbody tr:hover {
+    background: var(--bg-light);
+}
+
+.grade-table strong {
+    color: var(--light-blue);
+    font-weight: 700;
+}
+
+/* Dark mode grade table */
+body.dark-mode .grade-table {
+    color: #e5e7eb;
+}
+
+body.dark-mode .grade-table thead {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+}
+
+body.dark-mode .grade-table td {
+    border-bottom: 1px solid #374151;
+}
+
+body.dark-mode .grade-table tbody tr:hover {
+    background: #1e293b;
+}
+
+/* ===== PROGRESS FEEDBACK BANNERS ===== */
+.progress-feedback {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.progress-feedback.near-first {
+    background: linear-gradient(135deg, #fef3c7, #fcd34d);
+    color: #78350f;
+    border: 2px solid #f59e0b;
+}
+
+.progress-feedback.near-second {
+    background: linear-gradient(135deg, #dbeafe, #93c5fd);
+    color: #1e3a8a;
+    border: 2px solid #3b82f6;
+}
+
+.progress-feedback.at-risk {
+    background: linear-gradient(135deg, #fee2e2, #fca5a5);
+    color: #7f1d1d;
+    border: 2px solid #dc2626;
+    animation: warningShake 0.5s ease-in-out;
+}
+
+/* Dark mode feedback */
+body.dark-mode .progress-feedback.near-first {
+    background: linear-gradient(135deg, #78350f, #92400e);
+    color: #fef3c7;
+}
+
+body.dark-mode .progress-feedback.near-second {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    color: #dbeafe;
+}
+
+body.dark-mode .progress-feedback.at-risk {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    color: #fee2e2;
+}
+
+/* ===== CLOSE MILESTONE BUTTON ===== */
+.close-milestone {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.close-milestone:hover {
+    background: linear-gradient(135deg, #1e40af, #1e3a8a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.close-milestone:active {
+    transform: translateY(0);
+}
+
+/* Dark mode milestone button */
+body.dark-mode .close-milestone {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
+}
+
+body.dark-mode .close-milestone:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
 }
 
 /* ===== EXPORT/IMPORT ===== */

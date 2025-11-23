@@ -2474,6 +2474,9 @@ function updateSmartInsights() {
         const worstCourse = riskCourses[riskCourses.length - 1];
         document.getElementById('riskCourseText').innerHTML = 
             `<span class="highlight-risk">${worstCourse.code} - ${worstCourse.name} (${worstCourse.grade})</span>`;
+        
+        // Trigger risk toast notification
+        checkAndTriggerRiskNotification(worstCourse);
     } else {
         document.getElementById('riskCourseText').textContent = 'All courses performing well! ✓';
     }
@@ -2495,6 +2498,15 @@ function updateSmartInsights() {
                 'Excellent! Keep up the great work! 🎉';
         }
     }
+    
+    // Make cards clickable for detailed insights
+    addInsightCardClickHandlers(allCourses, bestCourse, riskCourses, failedCourses);
+    
+    // Check for achievement milestones
+    checkAchievements(allCourses);
+    
+    // Add dynamic progress bar overlays
+    addDynamicProgressOverlays();
 }
 
 function getNextBoundary(gpa) {
@@ -2512,6 +2524,259 @@ function getNextBoundary(gpa) {
         }
     }
     return null;
+}
+
+// ===== EXPANDABLE INSIGHT CARDS WITH MODALS =====
+function addInsightCardClickHandlers(allCourses, bestCourse, riskCourses, failedCourses) {
+    // Best course card - show top performers
+    const bestCard = document.querySelector('.smart-card.best-course');
+    if (bestCard) {
+        bestCard.onclick = () => showDetailedInsight('best', allCourses);
+    }
+    
+    // Risk course card - show all at-risk courses
+    const riskCard = document.querySelector('.smart-card.risk-course');
+    if (riskCard) {
+        riskCard.onclick = () => showDetailedInsight('risk', riskCourses);
+    }
+    
+    // Retake recommendation card - show impact analysis
+    const retakeCard = document.querySelector('.smart-card.retake-rec');
+    if (retakeCard) {
+        retakeCard.onclick = () => showDetailedInsight('retake', failedCourses);
+    }
+}
+
+function showDetailedInsight(type, courses) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    
+    let content = '';
+    
+    if (type === 'best') {
+        const top5 = courses.slice(0, 5);
+        content = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🏆 Top Performing Courses</h3>
+                    <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="info-text">Your strongest performances - keep up this excellent work!</p>
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Course</th>
+                                <th>Grade</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${top5.map((c, i) => `
+                                <tr>
+                                    <td>${i + 1}</td>
+                                    <td>${c.code} - ${c.name}</td>
+                                    <td><strong>${c.grade}</strong></td>
+                                    <td>${gradeTable[c.grade]}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    } else if (type === 'risk') {
+        const { cgpa } = calculateCGPA();
+        content = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⚠️ At-Risk Courses</h3>
+                    <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="info-text">These courses need attention. Consider retaking or seeking help.</p>
+                    ${courses.length > 0 ? `
+                        <table class="grade-table">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Current Grade</th>
+                                    <th>Target</th>
+                                    <th>Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${courses.map(c => {
+                                    const targetGrade = 'B';
+                                    const impact = ((gradeTable[targetGrade] - gradeTable[c.grade]) * c.credits / 100).toFixed(2);
+                                    return `
+                                        <tr>
+                                            <td>${c.code}</td>
+                                            <td><span class="highlight-risk">${c.grade}</span></td>
+                                            <td>${targetGrade}</td>
+                                            <td>+${impact} CGPA</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p>No at-risk courses found! 🎉</p>'}
+                </div>
+            </div>
+        `;
+    } else if (type === 'retake') {
+        content = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🎯 Retake Impact Analysis</h3>
+                    <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="info-text">See how retaking each course affects your GPA:</p>
+                    ${courses.length > 0 ? `
+                        <table class="grade-table">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Current</th>
+                                    <th>If Retake (B)</th>
+                                    <th>CGPA Boost</th>
+                                    <th>Priority</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${courses.map(c => {
+                                    const boost = ((gradeTable['B'] - gradeTable[c.grade]) * c.credits / 100).toFixed(2);
+                                    const priority = parseFloat(boost) > 0.1 ? '🔥 High' : '⭐ Medium';
+                                    return `
+                                        <tr>
+                                            <td>${c.code}</td>
+                                            <td>${c.grade}</td>
+                                            <td>B (3.0)</td>
+                                            <td>+${boost}</td>
+                                            <td>${priority}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="info-message success" style="margin-top: 20px;">
+                            <strong>Tip:</strong> Focus on high-priority courses first for maximum GPA improvement!
+                        </div>
+                    ` : '<p>No retakes needed - you\'re doing great! 🎉</p>'}
+                </div>
+            </div>
+        `;
+    }
+    
+    modal.innerHTML = content;
+    document.body.appendChild(modal);
+}
+
+// ===== ACHIEVEMENT & MILESTONE SYSTEM =====
+function checkAchievements(courses) {
+    const { cgpa } = calculateCGPA();
+    const achievements = JSON.parse(localStorage.getItem('ugAchievements') || '[]');
+    
+    // First A achievement
+    if (courses.some(c => c.grade === 'A') && !achievements.includes('first-a')) {
+        triggerMilestone('🌟 First A Grade!', 'You earned your first A! Excellence unlocked!');
+        achievements.push('first-a');
+    }
+    
+    // First Class achievement
+    if (cgpa >= 3.6 && !achievements.includes('first-class')) {
+        triggerMilestone('🏆 First Class Status!', `CGPA: ${cgpa.toFixed(2)} - Outstanding achievement!`);
+        achievements.push('first-class');
+    }
+    
+    // Perfect semester (all A's)
+    const lastSemester = currentProfile.semesters[currentProfile.semesters.length - 1];
+    if (lastSemester && lastSemester.courses.every(c => c.grade === 'A') && 
+        !achievements.includes(`perfect-${lastSemester.level}-${lastSemester.semester}`)) {
+        triggerMilestone('💯 Perfect Semester!', 'All A\'s - Incredible performance!');
+        achievements.push(`perfect-${lastSemester.level}-${lastSemester.semester}`);
+    }
+    
+    // 10 courses milestone
+    if (courses.length >= 10 && !achievements.includes('10-courses')) {
+        triggerMilestone('📚 10 Courses Completed!', 'You\'re making great progress!');
+        achievements.push('10-courses');
+    }
+    
+    // 20 courses milestone
+    if (courses.length >= 20 && !achievements.includes('20-courses')) {
+        triggerMilestone('🎓 20 Courses Completed!', 'Halfway to graduation!');
+        achievements.push('20-courses');
+    }
+    
+    localStorage.setItem('ugAchievements', JSON.stringify(achievements));
+}
+
+function triggerMilestone(title, message) {
+    const overlay = document.createElement('div');
+    overlay.className = 'milestone-overlay';
+    overlay.innerHTML = `
+        <div class="milestone-icon">🎉</div>
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <button class="close-milestone" onclick="this.closest('.milestone-overlay').remove()">
+            Awesome!
+        </button>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        overlay.remove();
+    }, 5000);
+    
+    // Also show toast notification
+    showNotification(`🎉 ${title}`, 'success');
+}
+
+// ===== RISK NOTIFICATION SYSTEM =====
+function checkAndTriggerRiskNotification(riskCourse) {
+    const notifiedRisks = JSON.parse(localStorage.getItem('ugNotifiedRisks') || '[]');
+    const riskKey = `${riskCourse.level}-${riskCourse.semester}-${riskCourse.code}`;
+    
+    if (!notifiedRisks.includes(riskKey)) {
+        showNotification(
+            `⚠️ Risk Detected: ${riskCourse.code} (${riskCourse.grade}) in ${riskCourse.level}`,
+            'error'
+        );
+        notifiedRisks.push(riskKey);
+        localStorage.setItem('ugNotifiedRisks', JSON.stringify(notifiedRisks));
+    }
+}
+
+// ===== DYNAMIC PROGRESS BAR OVERLAYS =====
+function addDynamicProgressOverlays() {
+    const progressContainers = document.querySelectorAll('.progress-bar-container');
+    const previousCGPA = parseFloat(localStorage.getItem('ugPreviousCGPA') || '0');
+    const { cgpa } = calculateCGPA();
+    
+    progressContainers.forEach(container => {
+        // Remove existing overlays
+        container.classList.remove('trending-up', 'trending-down', 'at-risk');
+        
+        // Add dynamic classes based on performance
+        if (cgpa > previousCGPA + 0.05) {
+            container.classList.add('trending-up');
+        } else if (cgpa < previousCGPA - 0.05) {
+            container.classList.add('trending-down');
+        }
+        
+        if (cgpa < 2.0) {
+            container.classList.add('at-risk');
+        }
+    });
+    
+    // Store current CGPA for next comparison
+    localStorage.setItem('ugPreviousCGPA', cgpa.toFixed(2));
 }
 
 // ===== ADAPTIVE PROGRESS BAR FEEDBACK =====
