@@ -57,9 +57,24 @@ body.dark-mode .semester-summary-card,
 body.dark-mode .smart-card,
 body.dark-mode .card,
 body.dark-mode .modal-content {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Specific hierarchy for inner dashboard metric containers */
+body.dark-mode .dashboard-metric {
     background: #1e293b;
-    color: #f1f5f9;
-    border-color: #334155;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #374151;
+}
+
+body.dark-mode .metric-value,
+body.dark-mode .metric-label,
+body.dark-mode label {
+    color: #f3f4f6;
 }
 
 body.dark-mode input,
@@ -112,12 +127,68 @@ body.dark-mode .guide-header-collapsible:hover {
     background: linear-gradient(135deg, #334155 0%, #475569 100%);
 }
 
+/* Lighten blue text in dark mode for better contrast */
+body.dark-mode .summary-header h3,
+body.dark-mode .guide-header-collapsible h3,
+body.dark-mode h2,
+body.dark-mode h3 {
+    color: #60a5fa !important;
+}
+
 body.dark-mode .gauge-value {
     fill: #60a5fa;
 }
 
 body.dark-mode .gauge-background {
     stroke: #334155;
+}
+
+/* Dark mode for results panels and sections */
+body.dark-mode .results-panel,
+body.dark-mode .section,
+body.dark-mode .calculator-header,
+body.dark-mode .whatif-form {
+    background-color: transparent;
+    color: #f3f4f6;
+}
+
+body.dark-mode .result-label,
+body.dark-mode .progress-label {
+    color: #cbd5e1;
+}
+
+body.dark-mode .result-value {
+    color: #f3f4f6;
+}
+
+/* Dark mode for course tables */
+body.dark-mode .course-table tbody tr {
+    background: #1e293b;
+}
+
+body.dark-mode .course-table tbody tr:hover {
+    background: #334155;
+}
+
+/* Dark mode for buttons */
+body.dark-mode .btn-primary,
+body.dark-mode .btn-success {
+    background: #3b82f6;
+    color: white;
+}
+
+body.dark-mode .btn-primary:hover,
+body.dark-mode .btn-success:hover {
+    background: #2563eb;
+}
+
+body.dark-mode .btn-secondary {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: #4b5563;
 }
 
 body.dark-mode .core-course-item {
@@ -133,6 +204,16 @@ body.dark-mode .core-course-item:hover {
 body.dark-mode .core-course-item.selected {
     background: #064e3b;
     border-color: #10b981;
+}
+
+/* Dark mode body background - proper dark navy */
+body.dark-mode {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #f3f4f6;
+}
+
+body.dark-mode .container {
+    color: #f3f4f6;
 }
 
 body {
@@ -1001,6 +1082,27 @@ body.dark-mode .theme-toggle {
 .info-message.error {
     background: #fee2e2;
     color: #991b1b;
+}
+
+/* Dark mode info messages */
+body.dark-mode .info-message.success {
+    background: #064e3b;
+    color: #6ee7b7;
+}
+
+body.dark-mode .info-message.warning {
+    background: #78350f;
+    color: #fcd34d;
+}
+
+body.dark-mode .info-message.error {
+    background: #7f1d1d;
+    color: #fca5a5;
+}
+
+body.dark-mode .info-text,
+body.dark-mode p {
+    color: #cbd5e1;
 }
 
 /* ===== MODALS ===== */
