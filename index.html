@@ -15,6 +15,9 @@
                 <i class="fas fa-graduation-cap"></i>
                 <span>UG GPA Calculator</span>
             </div>
+            <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
             <div class="nav-links">
                 <button class="nav-btn" data-section="dashboard">
                     <i class="fas fa-home"></i> Dashboard
@@ -130,6 +133,9 @@
             <div class="dashboard-actions">
                 <button onclick="switchSection('calculator')" class="btn btn-primary" tabindex="0">
                     <i class="fas fa-plus"></i> Add Courses
+                </button>
+                <button onclick="generateShareCard()" class="btn btn-success" tabindex="0" title="Create shareable image for WhatsApp status">
+                    <i class="fas fa-share-alt"></i> Share Achievement
                 </button>
                 <button onclick="switchSection('whatif')" class="btn btn-secondary" tabindex="0">
                     <i class="fas fa-magic"></i> Run What-If
@@ -803,6 +809,32 @@
                 <button class="btn-primary" id="addSelectedCoresBtn">
                     <i class="fas fa-check"></i> Add Selected Courses
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Card Modal -->
+    <div id="shareCardModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-share-alt"></i> Share Your Achievement</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="info-text">Your motivational GPA card is ready! Save and share on WhatsApp status 🎉</p>
+                
+                <div class="share-card-preview">
+                    <canvas id="shareCanvas" width="1080" height="1080"></canvas>
+                </div>
+                
+                <div class="share-options">
+                    <button class="btn-success" id="downloadShareCardBtn">
+                        <i class="fas fa-download"></i> Download Image
+                    </button>
+                    <button class="btn-secondary" id="copyShareLinkBtn">
+                        <i class="fas fa-link"></i> Copy Share Text
+                    </button>
+                </div>
             </div>
         </div>
     </div>

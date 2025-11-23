@@ -26,6 +26,163 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// ===== DARK MODE TOGGLE =====
+function initDarkMode() {
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('ugTheme');
+    
+    // Apply saved theme
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+    
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        // Update icon
+        themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        
+        // Save preference
+        localStorage.setItem('ugTheme', isDark ? 'dark' : 'light');
+        
+        // Show notification
+        showNotification(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'success');
+    });
+}
+
+// Initialize dark mode on load
+document.addEventListener('DOMContentLoaded', () => {
+    initDarkMode();
+});
+
+// ===== SOCIAL SHARE CARD GENERATOR =====
+function generateShareCard() {
+    if (!currentProfile) {
+        showNotification('Please create a profile first!', 'error');
+        return;
+    }
+    
+    const { cgpa } = calculateCGPA();
+    const classification = getClassification(cgpa);
+    
+    if (cgpa === 0) {
+        showNotification('Add some courses first to generate a share card!', 'error');
+        return;
+    }
+    
+    const modal = document.getElementById('shareCardModal');
+    const canvas = document.getElementById('shareCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size (square for WhatsApp status)
+    canvas.width = 1080;
+    canvas.height = 1080;
+    
+    // Create gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
+    if (cgpa >= 3.6) {
+        gradient.addColorStop(0, '#10b981');
+        gradient.addColorStop(1, '#059669');
+    } else if (cgpa >= 3.0) {
+        gradient.addColorStop(0, '#3b82f6');
+        gradient.addColorStop(1, '#2563eb');
+    } else if (cgpa >= 2.5) {
+        gradient.addColorStop(0, '#8b5cf6');
+        gradient.addColorStop(1, '#7c3aed');
+    } else {
+        gradient.addColorStop(0, '#f59e0b');
+        gradient.addColorStop(1, '#d97706');
+    }
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1080, 1080);
+    
+    // Add decorative circles
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(900, 200, 300, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(200, 900, 250, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+    
+    // Add white card in center
+    ctx.fillStyle = 'white';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 20;
+    ctx.beginPath();
+    ctx.roundRect(120, 200, 840, 680, 30);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    
+    // Add trophy emoji/icon
+    ctx.font = 'bold 120px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏆', 540, 350);
+    
+    // Add CGPA
+    ctx.font = 'bold 180px Arial';
+    ctx.fillStyle = '#1e40af';
+    ctx.fillText(cgpa.toFixed(2), 540, 550);
+    
+    // Add "CGPA" label
+    ctx.font = 'bold 50px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('CGPA', 540, 620);
+    
+    // Add classification
+    ctx.font = 'bold 48px Arial';
+    ctx.fillStyle = '#374151';
+    ctx.fillText(classification, 540, 710);
+    
+    // Add student name
+    ctx.font = '36px Arial';
+    ctx.fillStyle = '#9ca3af';
+    ctx.fillText(currentProfile.name || 'UG Student', 540, 800);
+    
+    // Add bottom text
+    ctx.font = 'bold 32px Arial';
+    ctx.fillStyle = 'white';
+    ctx.fillText('UNIVERSITY OF GHANA', 540, 1000);
+    
+    modal.style.display = 'block';
+}
+
+function downloadShareCard() {
+    const canvas = document.getElementById('shareCanvas');
+    const link = document.createElement('a');
+    const { cgpa } = calculateCGPA();
+    
+    link.download = `UG-GPA-${cgpa.toFixed(2)}-Achievement.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    
+    showNotification('🎉 Share card downloaded! Post it on your status!', 'success');
+}
+
+function copyShareText() {
+    const { cgpa } = calculateCGPA();
+    const classification = getClassification(cgpa);
+    
+    const shareText = `🎓 Just calculated my UG GPA!
+
+🏆 CGPA: ${cgpa.toFixed(2)}/4.00
+🎯 Classification: ${classification}
+
+#UniversityOfGhana #GPAGoals #AcademicExcellence`;
+    
+    navigator.clipboard.writeText(shareText).then(() => {
+        showNotification('✅ Share text copied! Paste it with your image.', 'success');
+    }).catch(() => {
+        showNotification('⚠️ Copy failed. Please copy manually.', 'error');
+    });
+}
+
 // ===== COMMON UG CORE COURSES DATABASE =====
 const ugCoreCourses = {
     "Level 100": [
@@ -371,6 +528,8 @@ function setupEventListeners() {
     document.getElementById('addCourseBtn').addEventListener('click', addCourse);
     document.getElementById('quickAddCoreBtn').addEventListener('click', showQuickAddCoreModal);
     document.getElementById('addSelectedCoresBtn').addEventListener('click', addSelectedCoreCourses);
+    document.getElementById('downloadShareCardBtn').addEventListener('click', downloadShareCard);
+    document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareText);
     document.getElementById('calculateGPABtn').addEventListener('click', calculateSemesterGPA);
     document.getElementById('saveSemesterBtn').addEventListener('click', saveSemester);
     document.getElementById('resetBtn').addEventListener('click', resetCourses);

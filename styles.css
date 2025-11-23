@@ -27,6 +27,114 @@ html {
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+/* Dark Mode Variables */
+body.dark-mode {
+    --primary-blue: #60a5fa;
+    --secondary-blue: #3b82f6;
+    --background: #0f172a;
+    --surface: #1e293b;
+    --surface-hover: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --border-color: #334155;
+    --success-green: #34d399;
+    --danger-red: #f87171;
+    --warning-yellow: #fbbf24;
+    --shadow: rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .navbar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .hero {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+body.dark-mode .dashboard-card,
+body.dark-mode .semester-summary-card,
+body.dark-mode .smart-card,
+body.dark-mode .card,
+body.dark-mode .modal-content {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+body.dark-mode input::placeholder {
+    color: #64748b;
+}
+
+body.dark-mode .course-table th {
+    background: #334155;
+    color: #f1f5f9;
+}
+
+body.dark-mode .course-table td {
+    border-color: #334155;
+}
+
+body.dark-mode .progress-bar-container {
+    background: #334155;
+}
+
+body.dark-mode .smart-card.best-course {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    border-color: #10b981;
+}
+
+body.dark-mode .smart-card.risk-course {
+    background: linear-gradient(135deg, #7c2d12 0%, #92400e 100%);
+    border-color: #fb923c;
+}
+
+body.dark-mode .smart-card.retake-rec {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    border-color: #60a5fa;
+}
+
+body.dark-mode .summary-header,
+body.dark-mode .guide-header-collapsible {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+body.dark-mode .summary-header:hover,
+body.dark-mode .guide-header-collapsible:hover {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+}
+
+body.dark-mode .gauge-value {
+    fill: #60a5fa;
+}
+
+body.dark-mode .gauge-background {
+    stroke: #334155;
+}
+
+body.dark-mode .core-course-item {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .core-course-item:hover {
+    background: #1e293b;
+    border-color: #60a5fa;
+}
+
+body.dark-mode .core-course-item.selected {
+    background: #064e3b;
+    border-color: #10b981;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
@@ -68,6 +176,28 @@ body {
 
 .nav-logo i {
     font-size: 2rem;
+}
+
+.theme-toggle {
+    background: none;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(15deg);
+}
+
+body.dark-mode .theme-toggle {
+    border-color: #60a5fa;
 }
 
 .nav-links {
@@ -1377,6 +1507,30 @@ body {
     font-size: 12px;
     color: #9ca3af;
     margin-top: 2px;
+}
+
+/* ===== SHARE CARD ===== */
+.share-card-preview {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    background: #f3f4f6;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+#shareCanvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.share-options {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* ===== VISUAL GPA GAUGE ===== */
