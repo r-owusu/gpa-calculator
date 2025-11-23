@@ -488,6 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     loadProfiles();
     addDefaultCourse();
+    updateSemesterHeaderOnLoad();
 });
 
 function initializeApp() {
@@ -936,6 +937,26 @@ function clearSemesterForm() {
 function updateSemesterHeader(level, semester) {
     // Update visual indicators
     const semesterText = semester === '1' ? '1st Semester' : '2nd Semester';
+    
+    // Update prominent header
+    const headerLabel = document.getElementById('currentSemesterLabel');
+    const statusLabel = document.getElementById('semesterStatus');
+    
+    if (headerLabel) {
+        headerLabel.textContent = `Level ${level} - ${semesterText}`;
+        
+        // Add animation
+        headerLabel.parentElement.classList.add('semester-badge-updated');
+        setTimeout(() => {
+            headerLabel.parentElement.classList.remove('semester-badge-updated');
+        }, 1000);
+    }
+    
+    if (statusLabel) {
+        statusLabel.innerHTML = '<i class="fas fa-edit"></i> Editing';
+        statusLabel.className = 'semester-status editing';
+    }
+    
     showNotification(`📚 Now entering: Level ${level}, ${semesterText}`, 'info');
 }
 
@@ -1030,6 +1051,40 @@ addCourse = function() {
     originalAddCourse();
     setTimeout(updateSaveAndNextButton, 100);
 };
+
+function updateSemesterHeaderOnLoad() {
+    const level = document.getElementById('academicLevel').value;
+    const semester = document.getElementById('semesterNumber').value;
+    const semesterText = semester === '1' ? '1st Semester' : '2nd Semester';
+    
+    const headerLabel = document.getElementById('currentSemesterLabel');
+    if (headerLabel) {
+        headerLabel.textContent = `Level ${level} - ${semesterText}`;
+    }
+}
+
+function updateSemesterHeaderOnLoad() {
+    const level = document.getElementById('academicLevel').value;
+    const semester = document.getElementById('semesterNumber').value;
+    const semesterText = semester === '1' ? '1st Semester' : '2nd Semester';
+    
+    const headerLabel = document.getElementById('currentSemesterLabel');
+    if (headerLabel) {
+        headerLabel.textContent = `Level ${level} - ${semesterText}`;
+    }
+}
+
+// Update header when dropdowns change (without transition)
+function updateHeaderOnly() {
+    const level = document.getElementById('academicLevel').value;
+    const semester = document.getElementById('semesterNumber').value;
+    const semesterText = semester === '1' ? '1st Semester' : '2nd Semester';
+    
+    const headerLabel = document.getElementById('currentSemesterLabel');
+    if (headerLabel) {
+        headerLabel.textContent = `Level ${level} - ${semesterText}`;
+    }
+}
 
 // ===== GPA CALCULATIONS =====
 function calculateSemesterGPA() {

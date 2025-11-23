@@ -2989,6 +2989,90 @@ body.dark-mode .progress-feedback.at-risk {
     color: #fee2e2;
 }
 
+/* ===== CURRENT SEMESTER HEADER ===== */
+.current-semester-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+}
+
+.semester-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.semester-badge i {
+    font-size: 1.5rem;
+    animation: iconBounce 2s ease-in-out infinite;
+}
+
+.semester-badge-updated {
+    animation: badgePulse 0.6s ease-out;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.semester-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.semester-status.editing {
+    background: rgba(251, 191, 36, 0.3);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+}
+
+.semester-status.saved {
+    background: rgba(16, 185, 129, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+/* Dark mode current semester header */
+body.dark-mode .current-semester-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.5);
+}
+
+body.dark-mode .semester-status {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .current-semester-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .semester-badge {
+        font-size: 1.1rem;
+    }
+}
+
 /* ===== SEMESTER HISTORY PANEL ===== */
 .semester-history {
     margin-top: 2rem;
