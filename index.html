@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UG GPA Calculator - University of Ghana</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>UG GPA Calculator</span>
+            </div>
+            <div class="nav-links">
+                <button class="nav-btn" data-section="dashboard">
+                    <i class="fas fa-home"></i> Dashboard
+                </button>
+                <button class="nav-btn active" data-section="calculator">
+                    <i class="fas fa-calculator"></i> Calculator
+                </button>
+                <button class="nav-btn" data-section="profiles">
+                    <i class="fas fa-users"></i> Profiles
+                </button>
+                <button class="nav-btn" data-section="transcript">
+                    <i class="fas fa-file-alt"></i> Transcript
+                </button>
+                <button class="nav-btn" data-section="whatif">
+                    <i class="fas fa-chart-line"></i> What-If
+                </button>
+                <button class="nav-btn" data-section="retake-planner">
+                    <i class="fas fa-redo"></i> Retake
+                </button>
+                <button class="nav-btn" data-section="guide">
+                    <i class="fas fa-book-open"></i> Guide
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">GPA Calculator Online</h1>
+            <p class="hero-subtitle">FREE GPA CALCULATOR FOR UNIVERSITY OF GHANA</p>
+            <p class="hero-description">Calculate your GPA, CGPA, and FGPA with ease</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section" style="display: none;">
+            <h2><i class="fas fa-home"></i> Dashboard</h2>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="dashboard-metric">
+                        <label>Current CGPA</label>
+                        <div class="metric-value-container">
+                            <h3 id="dash-cgpa" class="metric-value">-</h3>
+                            <span id="dash-cgpa-badge" class="boundary-pill"></span>
+                        </div>
+                        <p id="dash-class" class="metric-label">No Data Yet</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-metric">
+                        <label>Final GPA (FGPA)</label>
+                        <div class="metric-value-container">
+                            <h3 id="dash-fgpa" class="metric-value">-</h3>
+                            <span id="dash-fgpa-badge" class="boundary-pill"></span>
+                            <button onclick="showCalculationInfo('fgpa')" class="info-link" title="How this is calculated">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                        <p id="dash-fgpa-class" class="metric-label">No Data Yet</p>
+                    </div>
+                </div>
+                <div class="dashboard-card full-width">
+                    <label>Academic Progress</label>
+                    <div id="dash-progress-container"></div>
+                </div>
+            </div>
+
+            <!-- Smart Semester Summary -->
+            <div class="semester-summary-card collapsible">
+                <div class="summary-header" onclick="toggleCollapse('semesterSummary')">
+                    <h3><i class="fas fa-chart-bar"></i> Smart Semester Insights</h3>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="semesterSummary" class="summary-content">
+                    <div class="insight-cards">
+                        <div class="smart-card best-course">
+                            <div class="card-icon">🏆</div>
+                            <h4>Best Performance</h4>
+                            <p id="bestCourseText">-</p>
+                        </div>
+                        <div class="smart-card risk-course">
+                            <div class="card-icon">⚠️</div>
+                            <h4>Biggest Risk</h4>
+                            <p id="riskCourseText">-</p>
+                        </div>
+                        <div class="smart-card retake-rec">
+                            <div class="card-icon">🎯</div>
+                            <h4>Recommended Action</h4>
+                            <p id="retakeRecText">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-actions">
+                <button onclick="switchSection('calculator')" class="btn btn-primary" tabindex="0">
+                    <i class="fas fa-plus"></i> Add Courses
+                </button>
+                <button onclick="switchSection('whatif')" class="btn btn-secondary" tabindex="0">
+                    <i class="fas fa-magic"></i> Run What-If
+                </button>
+                <button onclick="switchSection('transcript')" class="btn btn-secondary" tabindex="0">
+                    <i class="fas fa-file-alt"></i> View Transcript
+                </button>
+                <button onclick="switchSection('retake-planner')" class="btn btn-secondary" tabindex="0">
+                    <i class="fas fa-redo"></i> Retake Planner
+                </button>
+            </div>
+        </section>
+
+        <!-- Calculator Section -->
+        <section id="calculator" class="section active">
+            <div class="calculator-header">
+                <h2>GPA Calculator Tool</h2>
+                <div class="profile-selector">
+                    <label for="currentProfile">Student Profile:</label>
+                    <select id="currentProfile">
+                        <option value="">Select Profile</option>
+                    </select>
+                    <button class="btn-secondary" id="newProfileBtn">
+                        <i class="fas fa-plus"></i> New Profile
+                    </button>
+                </div>
+            </div>
+
+            <div class="calculator-tabs">
+                <button class="tab-btn active" data-tab="semester">Semester GPA</button>
+                <button class="tab-btn" data-tab="cumulative">Cumulative GPA</button>
+                <button class="tab-btn" data-tab="fgpa">FGPA Calculator</button>
+            </div>
+
+            <!-- Semester GPA Tab -->
+            <div id="semester-tab" class="tab-content active">
+                <div class="semester-selector">
+                    <label>Academic Level:</label>
+                    <select id="academicLevel">
+                        <option value="100">Level 100</option>
+                        <option value="200">Level 200</option>
+                        <option value="300">Level 300</option>
+                        <option value="400">Level 400</option>
+                    </select>
+                    <label>Semester:</label>
+                    <select id="semesterNumber">
+                        <option value="1">1st Semester</option>
+                        <option value="2">2nd Semester</option>
+                    </select>
+                </div>
+
+                <div class="course-table-container">
+                    <table class="course-table">
+                        <thead>
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Credits</th>
+                                <th>Grade</th>
+                                <th>Type</th>
+                                <th>Grade Points</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courseTableBody">
+                            <!-- Courses will be added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <button class="btn-primary" id="addCourseBtn">
+                    <i class="fas fa-plus"></i> Add Another Course
+                </button>
+
+                <div class="results-panel">
+                    <div class="result-item">
+                        <span class="result-label">Total Credits (CCT):</span>
+                        <span class="result-value" id="totalCredits">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Credits Passed (CCP):</span>
+                        <span class="result-value" id="creditsPassed">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Grade Points (GPT):</span>
+                        <span class="result-value" id="totalGradePoints">0.00</span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="result-label">Your GPA:</span>
+                        <span class="result-value large" id="semesterGPA">0.00</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-success" id="calculateGPABtn">
+                        <i class="fas fa-calculator"></i> Calculate GPA
+                    </button>
+                    <button class="btn-secondary" id="saveSemesterBtn">
+                        <i class="fas fa-save"></i> Save Semester
+                    </button>
+                    <button class="btn-secondary" id="resetBtn">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Strengths & Risks Analysis Panel -->
+                <div id="insightsPanel" class="insights-panel" style="display: none;">
+                    <h3><i class="fas fa-lightbulb"></i> Semester Insights</h3>
+                    
+                    <div class="insights-grid">
+                        <div class="insight-card success-card">
+                            <h4><i class="fas fa-trophy"></i> Top Performers</h4>
+                            <div id="topCourses"></div>
+                        </div>
+                        
+                        <div class="insight-card risk-card">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Areas of Concern</h4>
+                            <div id="riskCourses"></div>
+                        </div>
+                    </div>
+
+                    <div id="retakeRecommendations" class="recommendation-box"></div>
+                </div>
+            </div>
+
+            <!-- Cumulative GPA Tab -->
+            <div id="cumulative-tab" class="tab-content">
+                <div class="cgpa-container">
+                    <h3>Cumulative GPA (CGPA) Calculation</h3>
+                    <p class="info-text">CGPA is calculated as the average of all semester GPAs with equal weighting.</p>
+                    
+                    <!-- Progress Visualization -->
+                    <div class="progress-dashboard">
+                        <div class="progress-item">
+                            <div class="progress-header">
+                                <span>Current CGPA</span>
+                                <span class="progress-value" id="cgpaProgressValue">0.00</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="cgpaProgressBar"></div>
+                                <div class="progress-markers">
+                                    <span class="marker" style="left: 37.5%;" title="1.5 - Pass">Pass</span>
+                                    <span class="marker" style="left: 50%;" title="2.0 - Third">3rd</span>
+                                    <span class="marker" style="left: 75%;" title="3.0 - 2nd Lower">2L</span>
+                                    <span class="marker" style="left: 90%;" title="3.6 - 1st">1st</span>
+                                </div>
+                            </div>
+                            <div class="progress-label" id="cgpaClassLabel">-</div>
+                        </div>
+
+                        <div class="progress-item">
+                            <div class="progress-header">
+                                <span>Credits Progress</span>
+                                <span class="progress-value" id="creditsProgressValue">0 / 0</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar credits" id="creditsProgressBar"></div>
+                            </div>
+                            <div class="progress-label">
+                                <span id="creditsPassed">0</span> Passed | <span id="creditsTotal">0</span> Taken
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="semesterGPAsList" class="semester-list">
+                        <!-- Saved semesters will appear here -->
+                    </div>
+
+                    <div class="results-panel">
+                        <div class="result-item highlight">
+                            <span class="result-label">Your CGPA:</span>
+                            <span class="result-value large" id="cgpaValue">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Boundary Alert -->
+                    <div id="boundaryAlert" class="boundary-alert" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- FGPA Tab -->
+            <div id="fgpa-tab" class="tab-content">
+                <div class="fgpa-container">
+                    <h3>Final Grade Point Average (FGPA)</h3>
+                    <p class="info-text">FGPA uses weighted levels: L100(1), L200(1), L300(2), L400(2). Total weight = 6 
+                        <button onclick="showCalculationInfo('fgpa')" class="info-link" title="How this is calculated">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </p>
+                    
+                    <div class="fgpa-levels">
+                        <div class="fgpa-level-card">
+                            <h4>Level 100 CGPA</h4>
+                            <input type="number" id="level100CGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                            <span class="weight-label">Weight: 1</span>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="l100-na" onchange="toggleLevelNA('l100')"> 
+                                N/A (Transfer/Skip)
+                            </label>
+                        </div>
+                        <div class="fgpa-level-card">
+                            <h4>Level 200 CGPA</h4>
+                            <input type="number" id="level200CGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                            <span class="weight-label">Weight: 1</span>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="l200-na" onchange="toggleLevelNA('l200')"> 
+                                N/A (Transfer/Skip)
+                            </label>
+                        </div>
+                        <div class="fgpa-level-card">
+                            <h4>Level 300 CGPA</h4>
+                            <input type="number" id="level300CGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                            <span class="weight-label">Weight: 2</span>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="l300-na" onchange="toggleLevelNA('l300')"> 
+                                N/A (Transfer/Skip)
+                            </label>
+                        </div>
+                        <div class="fgpa-level-card">
+                            <h4>Level 400 CGPA</h4>
+                            <input type="number" id="level400CGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                            <span class="weight-label">Weight: 2</span>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="l400-na" onchange="toggleLevelNA('l400')"> 
+                                N/A (Transfer/Skip)
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn-success" id="calculateFGPABtn">
+                        <i class="fas fa-calculator"></i> Calculate FGPA
+                    </button>
+
+                    <div class="results-panel">
+                        <div class="result-item highlight">
+                            <span class="result-label">Your FGPA:</span>
+                            <span class="result-value large" id="fgpaValue">0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Degree Classification:</span>
+                            <span class="result-value" id="degreeClass">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profiles Section -->
+        <section id="profiles" class="section">
+            <div class="profiles-header">
+                <h2>Student Profiles</h2>
+                <div class="profile-actions-header">
+                    <button class="btn-primary" id="createProfileBtn">
+                        <i class="fas fa-user-plus"></i> Create New Profile
+                    </button>
+                    <button class="btn-success" onclick="loadDemoProfile()">
+                        <i class="fas fa-magic"></i> Load Demo Profile
+                    </button>
+                    <button class="btn-secondary" id="exportDataBtn">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button class="btn-secondary" id="importDataBtn">
+                        <i class="fas fa-upload"></i> Import Data
+                    </button>
+                    <button class="btn-danger" onclick="openModal('resetModal')">
+                        <i class="fas fa-trash-alt"></i> Factory Reset
+                    </button>
+                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </div>
+            </div>
+
+            <div id="profilesList" class="profiles-grid">
+                <!-- Student profiles will be displayed here -->
+            </div>
+        </section>
+
+        <!-- Transcript Section -->
+        <section id="transcript" class="section">
+            <div class="transcript-header">
+                <h2>Academic Transcript</h2>
+                <div class="transcript-actions">
+                    <button class="btn-primary" id="printTranscriptBtn">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn-secondary" id="exportPDFBtn">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                    <button class="btn-secondary" id="exportCSVBtn">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <div id="transcriptContent" class="transcript-container">
+                <div class="transcript-header-content">
+                    <h3>UNIVERSITY OF GHANA</h3>
+                    <h4>ACADEMIC TRANSCRIPT</h4>
+                    <div class="student-info">
+                        <p><strong>Student Name:</strong> <span id="transcriptName">-</span></p>
+                        <p><strong>Student Number:</strong> <span id="transcriptNumber">-</span></p>
+                        <p><strong>Programme:</strong> <span id="transcriptProgramme">-</span></p>
+                    </div>
+                </div>
+
+                <div id="transcriptSemesters" class="transcript-semesters">
+                    <!-- Semester details will be populated here -->
+                </div>
+
+                <div class="transcript-summary">
+                    <h4>Summary</h4>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span>Total Credits (CCT):</span>
+                            <span id="transcriptTotalCredits">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Credits Passed (CCP):</span>
+                            <span id="transcriptCreditsPassed">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Cumulative GPA (CGPA):</span>
+                            <span id="transcriptCGPA">0.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Final GPA (FGPA):</span>
+                            <span id="transcriptFGPA">0.00</span>
+                        </div>
+                        <div class="summary-item highlight">
+                            <span>Degree Classification:</span>
+                            <span id="transcriptDegreeClass">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Retake Planner Section -->
+        <section id="retake-planner" class="section">
+            <h2><i class="fas fa-redo"></i> Retake Planner</h2>
+            <p class="section-description">Plan your course retakes and see predicted FGPA changes</p>
+            
+            <div id="retake-courses-container">
+                <div class="info-card">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Failed courses (E/F grades) will appear here. Select expected new grades to see FGPA impact.</p>
+                </div>
+                <table id="retake-table" class="retake-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Level</th>
+                            <th>Credits</th>
+                            <th>Current Grade</th>
+                            <th>Expected Grade</th>
+                            <th>FGPA Impact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="retake-body"></tbody>
+                </table>
+                <div id="retake-summary" class="retake-summary" style="display: none;"></div>
+            </div>
+        </section>
+
+        <!-- UG Grading Guide Section -->
+        <section id="guide" class="section">
+            <div class="guide-header">
+                <h2><i class="fas fa-book-open"></i> UG Grading System Guide</h2>
+                <p class="subtitle">Understanding how GPA, CGPA, and FGPA work at the University of Ghana</p>
+            </div>
+
+            <div class="guide-content">
+                <div class="guide-section collapsible">
+                    <div class="guide-header-collapsible" onclick="toggleCollapse('gpaSection')">
+                        <h3>📊 What is GPA?</h3>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div id="gpaSection" class="collapsible-content">
+                        <p>GPA (Grade Point Average) measures your academic performance for a single semester. It's calculated by dividing your total Grade Points by your total Credits.</p>
+                        <div class="formula-box">
+                            <strong>Formula:</strong> GPA = Total Grade Points (GPT) ÷ Total Credits (CCT)
+                        </div>
+                        <p><strong>Example:</strong> If you earn 12+7+8+12+7 = 46 grade points from 16 credits, your GPA = 46÷16 = 2.88</p>
+                    </div>
+                </div>
+
+                <div class="guide-section collapsible">
+                    <div class="guide-header-collapsible" onclick="toggleCollapse('cgpaSection')">
+                        <h3>📈 What is CGPA?</h3>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div id="cgpaSection" class="collapsible-content">
+                    <p>CGPA (Cumulative Grade Point Average) is the overall GPA across <strong>all semesters</strong> you've completed. Each semester's GPA carries equal weight.</p>
+                    <div class="formula-box">
+                        <strong>Formula:</strong> CGPA = (Sem1 GPA + Sem2 GPA + ... + SemN GPA) ÷ Number of Semesters
+                    </div>
+                    <p><strong>Example:</strong> Semester GPAs of 3.3 and 3.6 give CGPA = (3.3+3.6)÷2 = 3.45</p>
+                    </div>
+                </div>
+
+                <div class="guide-section collapsible">
+                    <div class="guide-header-collapsible" onclick="toggleCollapse('fgpaSection')">
+                        <h3>🎓 What is FGPA?</h3>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div id="fgpaSection" class="collapsible-content">
+                    <p>FGPA (Final Grade Point Average) determines your <strong>degree classification</strong>. It uses weighted levels to emphasize upper-level performance:</p>
+                    <div class="weight-grid">
+                        <div class="weight-item">Level 100 <span class="weight-badge">×1</span></div>
+                        <div class="weight-item">Level 200 <span class="weight-badge">×1</span></div>
+                        <div class="weight-item">Level 300 <span class="weight-badge">×2</span></div>
+                        <div class="weight-item">Level 400 <span class="weight-badge">×2</span></div>
+                    </div>
+                    <div class="formula-box">
+                        <strong>Formula:</strong> FGPA = (L100×1 + L200×1 + L300×2 + L400×2) ÷ 6
+                    </div>
+                    <p><strong>Example:</strong> CGPAs of 2.75, 3.7, 3.81, 3.68 give FGPA = (2.75×1 + 3.7×1 + 3.81×2 + 3.68×2)÷6 = 3.57</p>
+                    </div>
+                </div>
+
+                <div class="guide-section collapsible">
+                    <div class="guide-header-collapsible" onclick="toggleCollapse('classSection')">
+                        <h3>🏆 Degree Classification</h3>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div id="classSection" class="collapsible-content">
+                    <div class="fgpa-visual-bands">
+                        <div class="band-row band-first"><span class="band-range">3.60-4.00</span> <span class="band-label">First Class</span></div>
+                        <div class="band-row band-second-upper"><span class="band-range">3.00-3.59</span> <span class="band-label">Second Upper</span></div>
+                        <div class="band-row band-second-lower"><span class="band-range">2.50-2.99</span> <span class="band-label">Second Lower</span></div>
+                        <div class="band-row band-third"><span class="band-range">2.00-2.49</span> <span class="band-label">Third Class</span></div>
+                        <div class="band-row band-pass"><span class="band-range">1.50-1.99</span> <span class="band-label">Pass</span></div>
+                        <div class="band-row band-fail"><span class="band-range">Below 1.50</span> <span class="band-label">Fail</span></div>
+                    </div>
+                    <table class="classification-table">
+                        <thead>
+                            <tr>
+                                <th>FGPA Range</th>
+                                <th>Classification</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="first-class">
+                                <td>3.60 - 4.00</td>
+                                <td>First Class</td>
+                                <td>Excellent performance</td>
+                            </tr>
+                            <tr class="second-upper">
+                                <td>3.00 - 3.59</td>
+                                <td>Second Class (Upper)</td>
+                                <td>Very good performance</td>
+                            </tr>
+                            <tr class="second-lower">
+                                <td>2.00 - 2.99</td>
+                                <td>Second Class (Lower)</td>
+                                <td>Good performance</td>
+                            </tr>
+                            <tr class="third-class">
+                                <td>1.50 - 1.99</td>
+                                <td>Third Class</td>
+                                <td>Satisfactory performance</td>
+                            </tr>
+                            <tr class="pass">
+                                <td>1.00 - 1.49</td>
+                                <td>Pass</td>
+                                <td>Minimum passing standard</td>
+                            </tr>
+                            <tr class="fail">
+                                <td>0.00 - 0.99</td>
+                                <td>Fail (No award)</td>
+                                <td>Below minimum standard</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="guide-section">
+                    <h3>📝 Grade Conversion</h3>
+                    <div class="grade-conversion-grid">
+                        <div class="grade-card"><strong>A</strong> = 4.0 <span>(80-100)</span></div>
+                        <div class="grade-card"><strong>B+</strong> = 3.5 <span>(75-79)</span></div>
+                        <div class="grade-card"><strong>B</strong> = 3.0 <span>(70-74)</span></div>
+                        <div class="grade-card"><strong>C+</strong> = 2.5 <span>(65-69)</span></div>
+                        <div class="grade-card"><strong>C</strong> = 2.0 <span>(60-64)</span></div>
+                        <div class="grade-card"><strong>D+</strong> = 1.5 <span>(55-59)</span></div>
+                        <div class="grade-card"><strong>D</strong> = 1.0 <span>(50-54)</span></div>
+                        <div class="grade-card"><strong>E</strong> = 0.5 <span>(45-49)</span></div>
+                        <div class="grade-card"><strong>F</strong> = 0.0 <span>(0-44)</span></div>
+                    </div>
+                </div>
+
+                <div class="guide-section tip-section">
+                    <h3>💡 Key Tips</h3>
+                    <ul class="tip-list">
+                        <li><i class="fas fa-check"></i> Only grades D and above (≥1.0) count as "Passed" for CCP</li>
+                        <li><i class="fas fa-check"></i> Level 300 and 400 courses have double weight in FGPA</li>
+                        <li><i class="fas fa-check"></i> Retaking failed courses can significantly improve your FGPA</li>
+                        <li><i class="fas fa-check"></i> Focus on upper-level courses for maximum FGPA impact</li>
+                        <li><i class="fas fa-check"></i> Use what-if scenarios to plan your academic goals</li>
+                    </ul>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- What-If Section -->
+        <section id="whatif" class="section">
+            <div class="whatif-header">
+                <h2>What-If Scenario Calculator</h2>
+                <p class="subtitle">Predict your future GPA or calculate what you need to achieve your goal</p>
+            </div>
+
+            <div class="whatif-tabs">
+                <button class="whatif-tab-btn active" data-whatif-tab="predict">Predict Future GPA</button>
+                <button class="whatif-tab-btn" data-whatif-tab="target">Target GPA Calculator</button>
+            </div>
+
+            <!-- Predict Tab -->
+            <div id="predict-whatif-tab" class="whatif-tab-content active">
+                <div class="whatif-form">
+                    <h3>Predict Your Future GPA</h3>
+                    
+                    <div class="form-group">
+                        <label>Current CGPA:</label>
+                        <input type="number" id="predictCurrentCGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Total Credits Earned:</label>
+                        <input type="number" id="predictCurrentCredits" min="0" placeholder="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expected GPA Next Semester:</label>
+                        <input type="number" id="predictNextGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Credits Next Semester:</label>
+                        <input type="number" id="predictNextCredits" min="0" placeholder="0">
+                    </div>
+
+                    <button class="btn-success" id="predictGPABtn">
+                        <i class="fas fa-chart-line"></i> Predict GPA
+                    </button>
+
+                    <div class="results-panel">
+                        <div class="result-item highlight">
+                            <span class="result-label">Predicted CGPA:</span>
+                            <span class="result-value large" id="predictedCGPA">0.00</span>
+                        </div>
+                        <div id="predictionImpact" class="impact-explanation"></div>
+                    </div>
+
+                    <!-- Quick Scenario Buttons -->
+                    <div class="scenario-quick-buttons">
+                        <h4>Quick Scenarios</h4>
+                        <div class="scenario-buttons-grid">
+                            <button class="btn-scenario" data-gpa="4.0">All A's</button>
+                            <button class="btn-scenario" data-gpa="3.5">All B+'s</button>
+                            <button class="btn-scenario" data-gpa="3.0">All B's</button>
+                            <button class="btn-scenario" data-gpa="2.5">Mixed C+/B</button>
+                        </div>
+                    </div>
+
+                    <!-- Pinned Scenarios -->
+                    <div id="pinnedScenarios" class="pinned-scenarios">
+                        <h4><i class="fas fa-thumbtack"></i> Saved Scenarios</h4>
+                        <button class="btn-secondary btn-sm" id="pinScenarioBtn">
+                            <i class="fas fa-plus"></i> Pin Current Scenario
+                        </button>
+                        <div id="scenarioList" class="scenario-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Tab -->
+            <div id="target-whatif-tab" class="whatif-tab-content">
+                <div class="whatif-form">
+                    <h3>Calculate Required GPA to Reach Target</h3>
+                    
+                    <div class="form-group">
+                        <label>Current CGPA:</label>
+                        <input type="number" id="targetCurrentCGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Total Credits Earned:</label>
+                        <input type="number" id="targetCurrentCredits" min="0" placeholder="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target CGPA:</label>
+                        <input type="number" id="targetDesiredCGPA" step="0.01" min="0" max="4" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Credits Remaining:</label>
+                        <input type="number" id="targetRemainingCredits" min="0" placeholder="0">
+                    </div>
+
+                    <button class="btn-success" id="targetGPABtn">
+                        <i class="fas fa-bullseye"></i> Calculate Required GPA
+                    </button>
+
+                    <div class="results-panel">
+                        <div class="result-item highlight">
+                            <span class="result-label">Required GPA:</span>
+                            <span class="result-value large" id="requiredGPA">0.00</span>
+                        </div>
+                        <div id="targetMessage" class="info-message"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- New Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Profile</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Student Name:</label>
+                    <input type="text" id="profileName" placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label>Student Number:</label>
+                    <input type="text" id="profileNumber" placeholder="e.g., 10123456">
+                </div>
+                <div class="form-group">
+                    <label>Programme:</label>
+                    <input type="text" id="profileProgramme" placeholder="e.g., BSc Computer Science">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelProfileBtn">Cancel</button>
+                <button class="btn-primary" id="saveProfileBtn">Create Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Reference Modal -->
+    <div id="gradeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Grade Conversion Table</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="grade-table">
+                    <thead>
+                        <tr>
+                            <th>Letter Grade</th>
+                            <th>Percentage Range</th>
+                            <th>Grade Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>A</td><td>80-100</td><td>4.0</td></tr>
+                        <tr><td>B+</td><td>75-79</td><td>3.5</td></tr>
+                        <tr><td>B</td><td>70-74</td><td>3.0</td></tr>
+                        <tr><td>C+</td><td>65-69</td><td>2.5</td></tr>
+                        <tr><td>C</td><td>60-64</td><td>2.0</td></tr>
+                        <tr><td>D+</td><td>55-59</td><td>1.5</td></tr>
+                        <tr><td>D</td><td>50-54</td><td>1.0</td></tr>
+                        <tr><td>E</td><td>45-49</td><td>0.5</td></tr>
+                        <tr><td>F</td><td>0-44</td><td>0.0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Tour Overlay -->
+    <div id="tourOverlay" class="tour-overlay" style="display: none;">
+        <div class="tour-backdrop"></div>
+        <div class="tour-content">
+            <div class="tour-step" id="tour-step-1">
+                <h3>Welcome to UG GPA Calculator! 🎓</h3>
+                <p>Let's take a quick tour (4 steps)</p>
+                <div class="tour-progress">
+                    <span class="tour-dot active"></span><span class="tour-dot"></span>
+                    <span class="tour-dot"></span><span class="tour-dot"></span>
+                </div>
+                <button onclick="nextTourStep()" class="btn-primary">Start Tour</button>
+                <button onclick="skipTour()" class="btn-link">Skip</button>
+            </div>
+            <div class="tour-step" id="tour-step-2" style="display: none;">
+                <h3>Step 1: Add Courses</h3>
+                <p>Enter your course codes, names, credits, and grades. The calculator supports Core, Elective, and Retake courses.</p>
+                <div class="tour-progress">
+                    <span class="tour-dot"></span><span class="tour-dot active"></span>
+                    <span class="tour-dot"></span><span class="tour-dot"></span>
+                </div>
+                <button onclick="nextTourStep()" class="btn-primary">Next</button>
+            </div>
+            <div class="tour-step" id="tour-step-3" style="display: none;">
+                <h3>Step 2: View Your GPA</h3>
+                <p>Calculate Semester GPA, Cumulative GPA, or Final GPA (FGPA). See insights about your top courses and those at risk.</p>
+                <div class="tour-progress">
+                    <span class="tour-dot"></span><span class="tour-dot"></span>
+                    <span class="tour-dot active"></span><span class="tour-dot"></span>
+                </div>
+                <button onclick="nextTourStep()" class="btn-primary">Next</button>
+            </div>
+            <div class="tour-step" id="tour-step-4" style="display: none;">
+                <h3>Step 3: Try What-If Scenarios</h3>
+                <p>Predict how future grades will affect your FGPA. Pin scenarios to compare different academic paths.</p>
+                <div class="tour-progress">
+                    <span class="tour-dot"></span><span class="tour-dot"></span>
+                    <span class="tour-dot"></span><span class="tour-dot active"></span>
+                </div>
+                <button onclick="nextTourStep()" class="btn-primary">Next</button>
+            </div>
+            <div class="tour-step" id="tour-step-5" style="display: none;">
+                <h3>Step 4: View & Print Transcript</h3>
+                <p>Generate a professional transcript with all your academic data. Export as CSV or print for records.</p>
+                <div class="tour-progress">
+                    <span class="tour-dot"></span><span class="tour-dot"></span>
+                    <span class="tour-dot"></span><span class="tour-dot active"></span>
+                </div>
+                <button onclick="finishTour()" class="btn-primary">Finish Tour</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculation Info Modal -->
+    <div id="calcInfoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="calcInfoTitle">How This Is Calculated</h3>
+                <span class="close" onclick="closeModal('calcInfoModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="calcInfoBody"></div>
+        </div>
+    </div>
+
+    <!-- Snapshot Comparison Modal -->
+    <div id="snapshotModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Compare Scenarios</h3>
+                <span class="close" onclick="closeModal('snapshotModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="snapshotComparison"></div>
+        </div>
+    </div>
+
+    <!-- Factory Reset Confirmation -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚠️ Factory Reset</h3>
+                <span class="close" onclick="closeModal('resetModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><strong>This will permanently delete ALL data:</strong></p>
+                <ul>
+                    <li>All student profiles</li>
+                    <li>All courses and semesters</li>
+                    <li>All pinned scenarios</li>
+                    <li>All snapshots</li>
+                </ul>
+                <p>Type <strong>DELETE ALL</strong> to confirm:</p>
+                <input type="text" id="resetConfirmInput" class="form-input" placeholder="DELETE ALL">
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('resetModal')" class="btn-secondary">Cancel</button>
+                <button onclick="executeFactoryReset()" class="btn-danger">Confirm Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button class="help-btn" id="gradeHelpBtn" title="View Grade Conversion">
+        <i class="fas fa-question-circle"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
