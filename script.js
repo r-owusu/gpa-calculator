@@ -120,10 +120,12 @@ function generateShareCard() {
     ctx.fill();
     ctx.shadowColor = 'transparent';
     
-    // Add trophy emoji/icon
-    ctx.font = 'bold 120px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('🏆', 540, 350);
+    // Add trophy image/icon
+    const trophyImg = new Image();
+    trophyImg.src = 'Images/trophy.png';
+    trophyImg.onload = function() {
+        ctx.drawImage(trophyImg, 450, 240, 180, 180);
+    };
     
     // Add CGPA
     ctx.font = 'bold 180px Arial';
@@ -976,7 +978,7 @@ function loadSemesterDataForEditing(semesterData) {
     
     // Populate form with saved courses
     semesterData.courses.forEach(course => {
-        addCourseRow(course.code, course.name, course.credits, course.grade);
+        addCourseRow(course.code, course.name, course.credits, course.grade, course.type || 'core');
     });
     
     // Add one empty row for adding new courses
@@ -995,16 +997,19 @@ function loadSemesterDataForEditing(semesterData) {
     showNotification(`📝 Loaded saved data for Level ${semesterData.level} Sem ${semesterData.semester} (GPA: ${semesterData.gpa.toFixed(2)})`, 'info');
 }
 
-function addCourseRow(code = '', name = '', credits = '', grade = '') {
+function addCourseRow(code = '', name = '', credits = '', grade = '', type = 'core') {
     const tbody = document.getElementById('courseTableBody');
     const row = tbody.insertRow();
+    
+    // Calculate grade points
+    const gradePoints = credits && grade ? (parseFloat(credits) * (gradeTable[grade] || 0)).toFixed(2) : '0.00';
     
     row.innerHTML = `
         <td><input type="text" class="course-code" value="${code}" placeholder="e.g., COMP120" list="courseCodeList"></td>
         <td><input type="text" class="course-name" value="${name}" placeholder="e.g., Introduction to Computing"></td>
         <td><input type="number" class="course-credits" value="${credits}" min="0" max="6" step="1"></td>
         <td>
-            <select class="course-grade" onchange="calculateSemesterGPA()">
+            <select class="course-grade">
                 <option value="">-</option>
                 <option value="A" ${grade === 'A' ? 'selected' : ''}>A</option>
                 <option value="B+" ${grade === 'B+' ? 'selected' : ''}>B+</option>
@@ -1017,16 +1022,36 @@ function addCourseRow(code = '', name = '', credits = '', grade = '') {
                 <option value="F" ${grade === 'F' ? 'selected' : ''}>F</option>
             </select>
         </td>
-        <td><button type="button" class="remove-btn" onclick="removeCourse(this)">Remove</button></td>
+        <td>
+            <select class="course-type">
+                <option value="core" ${type === 'core' ? 'selected' : ''}>Core</option>
+                <option value="elective" ${type === 'elective' ? 'selected' : ''}>Elective</option>
+                <option value="retake" ${type === 'retake' ? 'selected' : ''}>Retake</option>
+            </select>
+        </td>
+        <td class="grade-points">${gradePoints}</td>
+        <td>
+            <button class="btn-danger" onclick="removeCourse(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
     `;
     
-    // Add event listeners for auto-calculate only
-    // (Autocomplete is handled by datalist in HTML)
+    // Add event listeners for auto-calculate and update grade points
     const creditsInput = row.querySelector('.course-credits');
-    creditsInput.addEventListener('input', calculateSemesterGPA);
-    
     const gradeSelect = row.querySelector('.course-grade');
-    gradeSelect.addEventListener('change', calculateSemesterGPA);
+    const gradePointsCell = row.querySelector('.grade-points');
+    
+    function updateRowGradePoints() {
+        const c = parseFloat(creditsInput.value) || 0;
+        const g = gradeSelect.value;
+        const points = c * (gradeTable[g] || 0);
+        gradePointsCell.textContent = points.toFixed(2);
+        calculateSemesterGPA();
+    }
+    
+    creditsInput.addEventListener('input', updateRowGradePoints);
+    gradeSelect.addEventListener('change', updateRowGradePoints);
 }
 
 function updateSemesterHeader(level, semester) {
@@ -1378,9 +1403,14 @@ function displaySemesterHistory() {
             <div class="semester-history-meta">
                 ${sem.courses.length} courses · ${sem.totalCredits} credits · ✓ Saved
             </div>
-            <button class="btn-sm btn-secondary" onclick="loadSemesterForEdit('${sem.level}', '${sem.semester}')">
-                <i class="fas fa-edit"></i> Edit
-            </button>
+            <div class="semester-history-actions">
+                <button class="btn-sm btn-secondary" onclick="loadSemesterForEdit('${sem.level}', '${sem.semester}')">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn-sm btn-danger" onclick="deleteSemesterHistory('${sem.level}', '${sem.semester}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
         `;
         historyList.appendChild(historyCard);
     });
@@ -1418,6 +1448,39 @@ function loadSemesterForEdit(level, semester) {
     
     calculateSemesterGPA();
     showNotification(`📝 Loaded Level ${level} Sem ${semester} for editing`, 'info');
+}
+
+function deleteSemesterHistory(level, semester) {
+    if (!currentProfile || !currentProfile.semesters) return;
+    
+    const confirmed = confirm(`Are you sure you want to delete Level ${level} Semester ${semester}?\n\nThis action cannot be undone.`);
+    
+    if (!confirmed) return;
+    
+    // Find and remove the semester
+    const semesterIndex = currentProfile.semesters.findIndex(
+        s => s.level === level && s.semester === semester
+    );
+    
+    if (semesterIndex === -1) return;
+    
+    // Remove from array
+    currentProfile.semesters.splice(semesterIndex, 1);
+    
+    // Update localStorage
+    const data = JSON.parse(localStorage.getItem('ugGPAData') || '{"profiles":[]}');
+    const profileIndex = data.profiles.findIndex(p => p.id === currentProfile.id);
+    
+    if (profileIndex !== -1) {
+        data.profiles[profileIndex].semesters = currentProfile.semesters;
+        localStorage.setItem('ugGPAData', JSON.stringify(data));
+    }
+    
+    // Refresh displays
+    displaySemesterHistory();
+    updateCGPADisplay();
+    
+    showNotification(`🗑️ Level ${level} Sem ${semester} deleted successfully`, 'success');
 }
 
 function updateCGPADisplay() {

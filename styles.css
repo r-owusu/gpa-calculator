@@ -3208,6 +3208,16 @@ body.dark-mode .btn-quick-add:hover {
     font-size: 0.85rem;
 }
 
+.semester-history-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.semester-history-actions .btn-sm {
+    flex: 1;
+}
+
 /* Dark mode semester history */
 body.dark-mode .semester-history {
     background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%);
