@@ -309,6 +309,13 @@ body.dark-mode .theme-toggle {
 .nav-btn.active {
     background: var(--white);
     color: var(--primary-blue);
+    font-weight: 600;
+}
+
+/* Ensure readable text on active state */
+body.dark-mode .nav-btn.active {
+    background: var(--white);
+    color: var(--primary-blue);
 }
 
 /* ===== HERO SECTION ===== */
