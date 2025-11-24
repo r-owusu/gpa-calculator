@@ -307,15 +307,15 @@ body.dark-mode .theme-toggle {
 }
 
 .nav-btn.active {
-    background: var(--white);
-    color: var(--primary-blue);
+    background: var(--white) !important;
+    color: var(--primary-blue) !important;
     font-weight: 600;
 }
 
 /* Ensure readable text on active state */
 body.dark-mode .nav-btn.active {
-    background: var(--white);
-    color: var(--primary-blue);
+    background: var(--white) !important;
+    color: var(--primary-blue) !important;
 }
 
 /* ===== HERO SECTION ===== */
